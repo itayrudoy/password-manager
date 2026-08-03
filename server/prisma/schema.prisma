@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  hashedPassword String   @map("hashed_password")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  loginItems LoginItem[]
+
+  @@map("users")
+}
+
+model LoginItem {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String
+  url       String?
+  username  String?
+  // Output of vaultCrypto.encrypt(). Today that's a no-op, so this is plaintext —
+  // the column stays a plain string when real encryption replaces the seam.
+  password  String
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("login_items")
+}
