@@ -3,7 +3,7 @@ import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import { CredentialCard } from "./CredentialCard";
 import { CredentialFormModal } from "./CredentialFormModal";
-import { DeleteConfirmModal } from "./DeleteConfirmModal";
+import { DeleteCredentialConfirmModal } from "./DeleteCredentialConfirmModal";
 import type { Credential } from "./types";
 
 export function VaultPage() {
@@ -86,7 +86,7 @@ export function VaultPage() {
       )}
 
       {deletingItem && (
-        <DeleteConfirmModal
+        <DeleteCredentialConfirmModal
           item={deletingItem}
           onCancel={() => setDeletingItem(null)}
           onConfirm={handleConfirmDelete}

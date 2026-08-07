@@ -1,12 +1,16 @@
 import type { Credential } from "./types";
 
-interface DeleteConfirmModalProps {
+interface DeleteCredentialConfirmModalProps {
   item: Credential;
   onCancel: () => void;
   onConfirm: () => void;
 }
 
-export function DeleteConfirmModal({ item, onCancel, onConfirm }: DeleteConfirmModalProps) {
+export function DeleteCredentialConfirmModal({
+  item,
+  onCancel,
+  onConfirm,
+}: DeleteCredentialConfirmModalProps) {
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
