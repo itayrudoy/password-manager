@@ -6,12 +6,12 @@ import { prisma } from "../../db/prisma.js";
 const app = createApp();
 
 beforeEach(async () => {
-  await prisma.loginItem.deleteMany();
+  await prisma.credential.deleteMany();
   await prisma.user.deleteMany();
 });
 
 afterAll(async () => {
-  await prisma.loginItem.deleteMany();
+  await prisma.credential.deleteMany();
   await prisma.user.deleteMany();
   await prisma.$disconnect();
 });

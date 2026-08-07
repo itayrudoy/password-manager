@@ -1,8 +1,8 @@
-import type { LoginItem } from "@prisma/client";
+import type { Credential } from "@prisma/client";
 import { decrypt, encrypt } from "../crypto/vaultCrypto.js";
 import { prisma } from "../db/prisma.js";
 
-export interface LoginItemInput {
+export interface CredentialInput {
   title: string;
   url?: string | null;
   username?: string | null;
@@ -10,7 +10,7 @@ export interface LoginItemInput {
   notes?: string | null;
 }
 
-export interface LoginItemUpdateInput {
+export interface CredentialUpdateInput {
   title?: string;
   url?: string | null;
   username?: string | null;
@@ -18,20 +18,20 @@ export interface LoginItemUpdateInput {
   notes?: string | null;
 }
 
-async function toView(item: LoginItem) {
+async function toView(item: Credential) {
   return { ...item, password: await decrypt(item.password) };
 }
 
-export async function listLoginItems(userId: string) {
-  const items = await prisma.loginItem.findMany({
+export async function listCredentials(userId: string) {
+  const items = await prisma.credential.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
   });
   return Promise.all(items.map(toView));
 }
 
-export async function createLoginItem(userId: string, input: LoginItemInput) {
-  const item = await prisma.loginItem.create({
+export async function createCredential(userId: string, input: CredentialInput) {
+  const item = await prisma.credential.create({
     data: {
       userId,
       title: input.title,
@@ -44,17 +44,17 @@ export async function createLoginItem(userId: string, input: LoginItemInput) {
   return toView(item);
 }
 
-export async function getLoginItem(userId: string, id: string) {
-  const item = await prisma.loginItem.findFirst({ where: { id, userId } });
+export async function getCredential(userId: string, id: string) {
+  const item = await prisma.credential.findFirst({ where: { id, userId } });
   return item ? toView(item) : null;
 }
 
-export async function updateLoginItem(userId: string, id: string, input: LoginItemUpdateInput) {
-  const existing = await prisma.loginItem.findFirst({ where: { id, userId } });
+export async function updateCredential(userId: string, id: string, input: CredentialUpdateInput) {
+  const existing = await prisma.credential.findFirst({ where: { id, userId } });
   if (!existing) {
     return null;
   }
-  const item = await prisma.loginItem.update({
+  const item = await prisma.credential.update({
     where: { id },
     data: {
       title: input.title,
@@ -67,11 +67,11 @@ export async function updateLoginItem(userId: string, id: string, input: LoginIt
   return toView(item);
 }
 
-export async function deleteLoginItem(userId: string, id: string): Promise<boolean> {
-  const existing = await prisma.loginItem.findFirst({ where: { id, userId } });
+export async function deleteCredential(userId: string, id: string): Promise<boolean> {
+  const existing = await prisma.credential.findFirst({ where: { id, userId } });
   if (!existing) {
     return false;
   }
-  await prisma.loginItem.delete({ where: { id } });
+  await prisma.credential.delete({ where: { id } });
   return true;
 }

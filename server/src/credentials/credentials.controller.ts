@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { HttpError } from "../middleware/errorHandler.js";
-import * as loginItems from "./loginItems.service.js";
+import * as credentials from "./credentials.service.js";
 
 function optionalString(value: unknown, field: string): string | null | undefined {
   if (value === undefined) return undefined;
@@ -9,7 +9,7 @@ function optionalString(value: unknown, field: string): string | null | undefine
   return value;
 }
 
-function parseCreateInput(body: unknown): loginItems.LoginItemInput {
+function parseCreateInput(body: unknown): credentials.CredentialInput {
   const b = (body ?? {}) as Record<string, unknown>;
   if (typeof b.title !== "string" || !b.title) {
     throw new HttpError(400, "title is required");
@@ -26,7 +26,7 @@ function parseCreateInput(body: unknown): loginItems.LoginItemInput {
   };
 }
 
-function parseUpdateInput(body: unknown): loginItems.LoginItemUpdateInput {
+function parseUpdateInput(body: unknown): credentials.CredentialUpdateInput {
   const b = (body ?? {}) as Record<string, unknown>;
   if (b.title !== undefined && (typeof b.title !== "string" || !b.title)) {
     throw new HttpError(400, "title must be a non-empty string");
@@ -44,37 +44,37 @@ function parseUpdateInput(body: unknown): loginItems.LoginItemUpdateInput {
 }
 
 export async function list(req: Request, res: Response) {
-  const items = await loginItems.listLoginItems(req.userId!);
+  const items = await credentials.listCredentials(req.userId!);
   res.json(items);
 }
 
 export async function create(req: Request, res: Response) {
   const input = parseCreateInput(req.body);
-  const item = await loginItems.createLoginItem(req.userId!, input);
+  const item = await credentials.createCredential(req.userId!, input);
   res.status(201).json(item);
 }
 
 export async function getOne(req: Request, res: Response) {
-  const item = await loginItems.getLoginItem(req.userId!, req.params.id);
+  const item = await credentials.getCredential(req.userId!, req.params.id);
   if (!item) {
-    throw new HttpError(404, "Login item not found");
+    throw new HttpError(404, "Credential not found");
   }
   res.json(item);
 }
 
 export async function update(req: Request, res: Response) {
   const input = parseUpdateInput(req.body);
-  const item = await loginItems.updateLoginItem(req.userId!, req.params.id, input);
+  const item = await credentials.updateCredential(req.userId!, req.params.id, input);
   if (!item) {
-    throw new HttpError(404, "Login item not found");
+    throw new HttpError(404, "Credential not found");
   }
   res.json(item);
 }
 
 export async function remove(req: Request, res: Response) {
-  const deleted = await loginItems.deleteLoginItem(req.userId!, req.params.id);
+  const deleted = await credentials.deleteCredential(req.userId!, req.params.id);
   if (!deleted) {
-    throw new HttpError(404, "Login item not found");
+    throw new HttpError(404, "Credential not found");
   }
   res.status(204).send();
 }

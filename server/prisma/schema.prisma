@@ -13,12 +13,12 @@ model User {
   hashedPassword String   @map("hashed_password")
   createdAt      DateTime @default(now()) @map("created_at")
 
-  loginItems LoginItem[]
+  credentials Credential[]
 
   @@map("users")
 }
 
-model LoginItem {
+model Credential {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
   title     String
@@ -34,5 +34,5 @@ model LoginItem {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@map("login_items")
+  @@map("credentials")
 }

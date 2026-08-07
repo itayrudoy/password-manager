@@ -1,4 +1,4 @@
-export interface LoginItem {
+export interface Credential {
   id: string;
   title: string;
   url: string | null;
@@ -9,7 +9,7 @@ export interface LoginItem {
   updatedAt: string;
 }
 
-export interface LoginItemInput {
+export interface CredentialInput {
   title: string;
   url?: string | null;
   username?: string | null;

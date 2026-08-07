@@ -13,50 +13,50 @@ async function registerUser(email: string) {
 }
 
 beforeEach(async () => {
-  await prisma.loginItem.deleteMany();
+  await prisma.credential.deleteMany();
   await prisma.user.deleteMany();
 });
 
 afterAll(async () => {
-  await prisma.loginItem.deleteMany();
+  await prisma.credential.deleteMany();
   await prisma.user.deleteMany();
   await prisma.$disconnect();
 });
 
-describe("login items CRUD", () => {
+describe("credentials CRUD", () => {
   it("creates, lists, updates, and deletes an item for the owning user", async () => {
     const cookie = await registerUser("alice@example.com");
 
     const createRes = await request(app)
-      .post("/api/login-items")
+      .post("/api/credentials")
       .set("Cookie", cookie)
       .send({ title: "GitHub", url: "https://github.com", username: "alice", password: "s3cret" });
     expect(createRes.status).toBe(201);
     expect(createRes.body.password).toBe("s3cret");
     const itemId = createRes.body.id;
 
-    const listRes = await request(app).get("/api/login-items").set("Cookie", cookie);
+    const listRes = await request(app).get("/api/credentials").set("Cookie", cookie);
     expect(listRes.status).toBe(200);
     expect(listRes.body).toHaveLength(1);
     expect(listRes.body[0].title).toBe("GitHub");
 
     const updateRes = await request(app)
-      .put(`/api/login-items/${itemId}`)
+      .put(`/api/credentials/${itemId}`)
       .set("Cookie", cookie)
       .send({ title: "GitHub (work)" });
     expect(updateRes.status).toBe(200);
     expect(updateRes.body.title).toBe("GitHub (work)");
     expect(updateRes.body.password).toBe("s3cret");
 
-    const deleteRes = await request(app).delete(`/api/login-items/${itemId}`).set("Cookie", cookie);
+    const deleteRes = await request(app).delete(`/api/credentials/${itemId}`).set("Cookie", cookie);
     expect(deleteRes.status).toBe(204);
 
-    const afterDeleteRes = await request(app).get("/api/login-items").set("Cookie", cookie);
+    const afterDeleteRes = await request(app).get("/api/credentials").set("Cookie", cookie);
     expect(afterDeleteRes.body).toHaveLength(0);
   });
 
   it("rejects requests without a session", async () => {
-    const res = await request(app).get("/api/login-items");
+    const res = await request(app).get("/api/credentials");
     expect(res.status).toBe(401);
   });
 
@@ -65,27 +65,27 @@ describe("login items CRUD", () => {
     const bobCookie = await registerUser("bob@example.com");
 
     const createRes = await request(app)
-      .post("/api/login-items")
+      .post("/api/credentials")
       .set("Cookie", aliceCookie)
       .send({ title: "Alice's Bank", password: "alice-secret" });
     const itemId = createRes.body.id;
 
-    const bobList = await request(app).get("/api/login-items").set("Cookie", bobCookie);
+    const bobList = await request(app).get("/api/credentials").set("Cookie", bobCookie);
     expect(bobList.body).toHaveLength(0);
 
-    const bobGet = await request(app).get(`/api/login-items/${itemId}`).set("Cookie", bobCookie);
+    const bobGet = await request(app).get(`/api/credentials/${itemId}`).set("Cookie", bobCookie);
     expect(bobGet.status).toBe(404);
 
     const bobUpdate = await request(app)
-      .put(`/api/login-items/${itemId}`)
+      .put(`/api/credentials/${itemId}`)
       .set("Cookie", bobCookie)
       .send({ title: "Hacked" });
     expect(bobUpdate.status).toBe(404);
 
-    const bobDelete = await request(app).delete(`/api/login-items/${itemId}`).set("Cookie", bobCookie);
+    const bobDelete = await request(app).delete(`/api/credentials/${itemId}`).set("Cookie", bobCookie);
     expect(bobDelete.status).toBe(404);
 
-    const aliceGet = await request(app).get(`/api/login-items/${itemId}`).set("Cookie", aliceCookie);
+    const aliceGet = await request(app).get(`/api/credentials/${itemId}`).set("Cookie", aliceCookie);
     expect(aliceGet.status).toBe(200);
     expect(aliceGet.body.title).toBe("Alice's Bank");
   });

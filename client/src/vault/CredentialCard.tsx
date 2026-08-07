@@ -1,13 +1,13 @@
 import { useState } from "react";
-import type { LoginItem } from "./types";
+import type { Credential } from "./types";
 
-interface LoginItemCardProps {
-  item: LoginItem;
-  onEdit: (item: LoginItem) => void;
-  onDelete: (item: LoginItem) => void;
+interface CredentialCardProps {
+  item: Credential;
+  onEdit: (item: Credential) => void;
+  onDelete: (item: Credential) => void;
 }
 
-export function LoginItemCard({ item, onEdit, onDelete }: LoginItemCardProps) {
+export function CredentialCard({ item, onEdit, onDelete }: CredentialCardProps) {
   const [revealed, setRevealed] = useState(false);
 
   return (

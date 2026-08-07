@@ -1,7 +1,7 @@
-import type { LoginItem } from "./types";
+import type { Credential } from "./types";
 
 interface DeleteConfirmDialogProps {
-  item: LoginItem;
+  item: Credential;
   onCancel: () => void;
   onConfirm: () => void;
 }
