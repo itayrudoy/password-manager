@@ -1,12 +1,16 @@
-import type { LoginItem } from "./types";
+import type { Credential } from "./types";
 
-interface DeleteConfirmDialogProps {
-  item: LoginItem;
+interface DeleteCredentialConfirmModalProps {
+  item: Credential;
   onCancel: () => void;
   onConfirm: () => void;
 }
 
-export function DeleteConfirmDialog({ item, onCancel, onConfirm }: DeleteConfirmDialogProps) {
+export function DeleteCredentialConfirmModal({
+  item,
+  onCancel,
+  onConfirm,
+}: DeleteCredentialConfirmModalProps) {
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>

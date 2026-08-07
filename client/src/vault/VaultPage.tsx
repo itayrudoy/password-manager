@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
-import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
-import { LoginItemCard } from "./LoginItemCard";
-import { LoginItemFormModal } from "./LoginItemFormModal";
-import type { LoginItem } from "./types";
+import { CredentialCard } from "./CredentialCard";
+import { CredentialFormModal } from "./CredentialFormModal";
+import { DeleteCredentialConfirmModal } from "./DeleteCredentialConfirmModal";
+import type { Credential } from "./types";
 
 export function VaultPage() {
   const { user, logout } = useAuth();
-  const [items, setItems] = useState<LoginItem[]>([]);
+  const [items, setItems] = useState<Credential[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<LoginItem | null>(null);
-  const [deletingItem, setDeletingItem] = useState<LoginItem | null>(null);
+  const [editingItem, setEditingItem] = useState<Credential | null>(null);
+  const [deletingItem, setDeletingItem] = useState<Credential | null>(null);
 
   useEffect(() => {
     api
-      .get<LoginItem[]>("/login-items")
+      .get<Credential[]>("/credentials")
       .then(setItems)
       .catch(() => setError("Failed to load your vault"))
       .finally(() => setIsLoading(false));
@@ -29,12 +29,12 @@ export function VaultPage() {
     setIsFormOpen(true);
   }
 
-  function openEditForm(item: LoginItem) {
+  function openEditForm(item: Credential) {
     setEditingItem(item);
     setIsFormOpen(true);
   }
 
-  function handleSaved(saved: LoginItem) {
+  function handleSaved(saved: Credential) {
     setItems((prev) => {
       const exists = prev.some((i) => i.id === saved.id);
       return exists ? prev.map((i) => (i.id === saved.id ? saved : i)) : [saved, ...prev];
@@ -45,7 +45,7 @@ export function VaultPage() {
 
   async function handleConfirmDelete() {
     if (!deletingItem) return;
-    await api.delete(`/login-items/${deletingItem.id}`);
+    await api.delete(`/credentials/${deletingItem.id}`);
     setItems((prev) => prev.filter((i) => i.id !== deletingItem.id));
     setDeletingItem(null);
   }
@@ -64,11 +64,11 @@ export function VaultPage() {
       {isLoading && <p>Loading…</p>}
       {error && <p className="error">{error}</p>}
 
-      {!isLoading && !error && items.length === 0 && <p>No login items yet.</p>}
+      {!isLoading && !error && items.length === 0 && <p>No credentials yet.</p>}
 
       <div className="vault-grid">
         {items.map((item) => (
-          <LoginItemCard
+          <CredentialCard
             key={item.id}
             item={item}
             onEdit={openEditForm}
@@ -78,7 +78,7 @@ export function VaultPage() {
       </div>
 
       {isFormOpen && (
-        <LoginItemFormModal
+        <CredentialFormModal
           item={editingItem}
           onClose={() => setIsFormOpen(false)}
           onSaved={handleSaved}
@@ -86,7 +86,7 @@ export function VaultPage() {
       )}
 
       {deletingItem && (
-        <DeleteConfirmDialog
+        <DeleteCredentialConfirmModal
           item={deletingItem}
           onCancel={() => setDeletingItem(null)}
           onConfirm={handleConfirmDelete}

@@ -12,7 +12,7 @@ function requireCredentials(req: Request): { email: string; password: string } {
   return { email, password };
 }
 
-export async function register(req: Request, res: Response) {
+export async function signup(req: Request, res: Response) {
   const { email, password } = requireCredentials(req);
 
   const existing = await prisma.user.findUnique({ where: { email } });

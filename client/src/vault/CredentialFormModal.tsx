@@ -1,14 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { api, ApiError } from "../api/client";
-import type { LoginItem, LoginItemInput } from "./types";
+import type { Credential, CredentialInput } from "./types";
 
-interface LoginItemFormModalProps {
-  item: LoginItem | null;
+interface CredentialFormModalProps {
+  item: Credential | null;
   onClose: () => void;
-  onSaved: (item: LoginItem) => void;
+  onSaved: (item: Credential) => void;
 }
 
-export function LoginItemFormModal({ item, onClose, onSaved }: LoginItemFormModalProps) {
+export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormModalProps) {
   const [title, setTitle] = useState(item?.title ?? "");
   const [url, setUrl] = useState(item?.url ?? "");
   const [username, setUsername] = useState(item?.username ?? "");
@@ -21,7 +21,7 @@ export function LoginItemFormModal({ item, onClose, onSaved }: LoginItemFormModa
     e.preventDefault();
     setError(null);
     setIsSaving(true);
-    const input: LoginItemInput = {
+    const input: CredentialInput = {
       title,
       url: url || null,
       username: username || null,
@@ -30,8 +30,8 @@ export function LoginItemFormModal({ item, onClose, onSaved }: LoginItemFormModa
     };
     try {
       const saved = item
-        ? await api.put<LoginItem>(`/login-items/${item.id}`, input)
-        : await api.post<LoginItem>("/login-items", input);
+        ? await api.put<Credential>(`/credentials/${item.id}`, input)
+        : await api.post<Credential>("/credentials", input);
       onSaved(saved);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to save item");
