@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import { CredentialCard } from "./CredentialCard";
-import { CredentialFormDialog } from "./CredentialFormDialog";
-import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { CredentialFormModal } from "./CredentialFormModal";
+import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import type { Credential } from "./types";
 
 export function VaultPage() {
@@ -78,7 +78,7 @@ export function VaultPage() {
       </div>
 
       {isFormOpen && (
-        <CredentialFormDialog
+        <CredentialFormModal
           item={editingItem}
           onClose={() => setIsFormOpen(false)}
           onSaved={handleSaved}
@@ -86,7 +86,7 @@ export function VaultPage() {
       )}
 
       {deletingItem && (
-        <DeleteConfirmDialog
+        <DeleteConfirmModal
           item={deletingItem}
           onCancel={() => setDeletingItem(null)}
           onConfirm={handleConfirmDelete}

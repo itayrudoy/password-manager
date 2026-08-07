@@ -1,15 +1,15 @@
 import type { Credential } from "./types";
 
-interface DeleteConfirmDialogProps {
+interface DeleteConfirmModalProps {
   item: Credential;
   onCancel: () => void;
   onConfirm: () => void;
 }
 
-export function DeleteConfirmDialog({ item, onCancel, onConfirm }: DeleteConfirmDialogProps) {
+export function DeleteConfirmModal({ item, onCancel, onConfirm }: DeleteConfirmModalProps) {
   return (
-    <div className="dialog-overlay" onClick={onCancel}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2>Delete "{item.title}"?</h2>
         <p>This can't be undone.</p>
         <div className="actions">
