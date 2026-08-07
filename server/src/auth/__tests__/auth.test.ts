@@ -17,9 +17,9 @@ afterAll(async () => {
 });
 
 describe("auth", () => {
-  it("registers a new user and sets a session cookie", async () => {
+  it("signs up a new user and sets a session cookie", async () => {
     const res = await request(app)
-      .post("/api/auth/register")
+      .post("/api/auth/signup")
       .send({ email: "alice@example.com", password: "correct-horse" });
 
     expect(res.status).toBe(201);
@@ -27,13 +27,13 @@ describe("auth", () => {
     expect(res.headers["set-cookie"]?.[0]).toMatch(/^token=/);
   });
 
-  it("rejects registering the same email twice", async () => {
+  it("rejects signing up with the same email twice", async () => {
     await request(app)
-      .post("/api/auth/register")
+      .post("/api/auth/signup")
       .send({ email: "alice@example.com", password: "correct-horse" });
 
     const res = await request(app)
-      .post("/api/auth/register")
+      .post("/api/auth/signup")
       .send({ email: "alice@example.com", password: "another-password" });
 
     expect(res.status).toBe(409);
@@ -41,7 +41,7 @@ describe("auth", () => {
 
   it("logs in with correct credentials and rejects the wrong password", async () => {
     await request(app)
-      .post("/api/auth/register")
+      .post("/api/auth/signup")
       .send({ email: "alice@example.com", password: "correct-horse" });
 
     const goodLogin = await request(app)
@@ -56,10 +56,10 @@ describe("auth", () => {
   });
 
   it("returns the current user from /me when authenticated, 401 otherwise", async () => {
-    const registerRes = await request(app)
-      .post("/api/auth/register")
+    const signupRes = await request(app)
+      .post("/api/auth/signup")
       .send({ email: "alice@example.com", password: "correct-horse" });
-    const cookie = registerRes.headers["set-cookie"];
+    const cookie = signupRes.headers["set-cookie"];
 
     const meRes = await request(app).get("/api/auth/me").set("Cookie", cookie);
     expect(meRes.status).toBe(200);
@@ -70,10 +70,10 @@ describe("auth", () => {
   });
 
   it("clears the session on logout", async () => {
-    const registerRes = await request(app)
-      .post("/api/auth/register")
+    const signupRes = await request(app)
+      .post("/api/auth/signup")
       .send({ email: "alice@example.com", password: "correct-horse" });
-    const cookie = registerRes.headers["set-cookie"];
+    const cookie = signupRes.headers["set-cookie"];
 
     const logoutRes = await request(app).post("/api/auth/logout").set("Cookie", cookie);
     expect(logoutRes.status).toBe(204);

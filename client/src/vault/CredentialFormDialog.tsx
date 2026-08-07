@@ -2,13 +2,13 @@ import { useState, type FormEvent } from "react";
 import { api, ApiError } from "../api/client";
 import type { Credential, CredentialInput } from "./types";
 
-interface CredentialFormModalProps {
+interface CredentialFormDialogProps {
   item: Credential | null;
   onClose: () => void;
   onSaved: (item: Credential) => void;
 }
 
-export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormModalProps) {
+export function CredentialFormDialog({ item, onClose, onSaved }: CredentialFormDialogProps) {
   const [title, setTitle] = useState(item?.title ?? "");
   const [url, setUrl] = useState(item?.url ?? "");
   const [username, setUsername] = useState(item?.username ?? "");
@@ -41,8 +41,8 @@ export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormMo
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
+    <div className="dialog-overlay" onClick={onClose}>
+      <form className="dialog" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
         <h2>{item ? "Edit item" : "Add item"}</h2>
         {error && <p className="error">{error}</p>}
         <label>

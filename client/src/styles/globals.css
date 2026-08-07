@@ -95,7 +95,7 @@ body {
   margin-top: 0.5rem;
 }
 
-.modal-overlay {
+.dialog-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
@@ -104,7 +104,7 @@ body {
   justify-content: center;
 }
 
-.modal {
+.dialog {
   background: white;
   border-radius: 8px;
   padding: 1.5rem;

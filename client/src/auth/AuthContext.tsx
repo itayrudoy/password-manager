@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signup(email: string, password: string) {
-    setUser(await api.post<User>("/auth/register", { email, password }));
+    setUser(await api.post<User>("/auth/signup", { email, password }));
   }
 
   async function logout() {

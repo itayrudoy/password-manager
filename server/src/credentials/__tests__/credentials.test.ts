@@ -5,9 +5,9 @@ import { prisma } from "../../db/prisma.js";
 
 const app = createApp();
 
-async function registerUser(email: string) {
+async function signupUser(email: string) {
   const res = await request(app)
-    .post("/api/auth/register")
+    .post("/api/auth/signup")
     .send({ email, password: "correct-horse" });
   return res.headers["set-cookie"];
 }
@@ -25,7 +25,7 @@ afterAll(async () => {
 
 describe("credentials CRUD", () => {
   it("creates, lists, updates, and deletes an item for the owning user", async () => {
-    const cookie = await registerUser("alice@example.com");
+    const cookie = await signupUser("alice@example.com");
 
     const createRes = await request(app)
       .post("/api/credentials")
@@ -61,8 +61,8 @@ describe("credentials CRUD", () => {
   });
 
   it("prevents one user from reading, updating, or deleting another user's item", async () => {
-    const aliceCookie = await registerUser("alice@example.com");
-    const bobCookie = await registerUser("bob@example.com");
+    const aliceCookie = await signupUser("alice@example.com");
+    const bobCookie = await signupUser("bob@example.com");
 
     const createRes = await request(app)
       .post("/api/credentials")

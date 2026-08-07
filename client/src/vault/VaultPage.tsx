@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import { CredentialCard } from "./CredentialCard";
-import { CredentialFormModal } from "./CredentialFormModal";
+import { CredentialFormDialog } from "./CredentialFormDialog";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import type { Credential } from "./types";
 
@@ -64,7 +64,7 @@ export function VaultPage() {
       {isLoading && <p>Loading…</p>}
       {error && <p className="error">{error}</p>}
 
-      {!isLoading && !error && items.length === 0 && <p>No login items yet.</p>}
+      {!isLoading && !error && items.length === 0 && <p>No credentials yet.</p>}
 
       <div className="vault-grid">
         {items.map((item) => (
@@ -78,7 +78,7 @@ export function VaultPage() {
       </div>
 
       {isFormOpen && (
-        <CredentialFormModal
+        <CredentialFormDialog
           item={editingItem}
           onClose={() => setIsFormOpen(false)}
           onSaved={handleSaved}
