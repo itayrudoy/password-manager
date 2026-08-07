@@ -1,0 +1,67 @@
+.abtn {
+  position: relative;
+  border: none;
+  background: transparent;
+  color: var(--soft);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: var(--r-sm);
+  transition: background 0.12s, color 0.12s;
+}
+
+.abtn--sm {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.abtn--md {
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+.abtn--lg {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+}
+
+.abtn--neutral:hover {
+  color: var(--accent-text);
+  background: var(--tint);
+}
+.abtn--danger:hover {
+  color: var(--bad);
+  background: var(--bad-wash);
+}
+
+.abtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.abtn.is-copied {
+  color: var(--good);
+  background: var(--good-wash);
+}
+
+.abtn .tip {
+  position: absolute;
+  bottom: calc(100% + var(--s1));
+  left: 50%;
+  transform: translateX(-50%) translateY(0.15em);
+  background: var(--text);
+  color: var(--surface);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: var(--s1) var(--s2);
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s, transform 0.12s;
+  z-index: 3;
+}
+
+.abtn.is-copied .tip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

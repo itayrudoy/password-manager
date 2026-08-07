@@ -1,5 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { api, ApiError } from "../api/client";
+import { Modal } from "../ui/Modal";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
+import { IconButton } from "../ui/IconButton";
+import { Icon } from "../ui/Icon";
+import { useCopyFeedback } from "../lib/useCopyFeedback";
 import type { Credential, CredentialInput } from "./types";
 
 interface CredentialFormModalProps {
@@ -16,6 +22,8 @@ export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormMo
   const [notes, setNotes] = useState(item?.notes ?? "");
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const { copied, copy } = useCopyFeedback();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -41,39 +49,77 @@ export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormMo
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
-        <h2>{item ? "Edit item" : "Add item"}</h2>
+    <Modal onClose={onClose} labelledBy="credential-form-title">
+      <h2 className="modal__title" id="credential-form-title">
+        {item ? "Edit login" : "New login"}
+      </h2>
+      <p className="modal__subtitle">
+        {item ? "Update the details for this login." : "Add a set of credentials to your vault."}
+      </p>
+
+      <form className="form" onSubmit={handleSubmit}>
         {error && <p className="error">{error}</p>}
-        <label>
-          Title
-          <input value={title} onChange={(e) => setTitle(e.target.value)} required />
-        </label>
-        <label>
-          Website
-          <input value={url} onChange={(e) => setUrl(e.target.value)} />
-        </label>
-        <label>
-          Username
-          <input value={username} onChange={(e) => setUsername(e.target.value)} />
-        </label>
-        <label>
-          Password
-          <input value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-        <label>
-          Notes
-          <input value={notes} onChange={(e) => setNotes(e.target.value)} />
-        </label>
-        <div className="actions">
-          <button type="button" onClick={onClose} disabled={isSaving}>
+
+        <Input
+          label="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          autoFocus
+        />
+        <Input
+          label="Website"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="example.com"
+        />
+        <Input
+          label="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <Input
+          label="Password"
+          type={revealed ? "text" : "password"}
+          mono
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          trailing={
+            <>
+              <IconButton
+                aria-label={revealed ? "Hide password" : "Reveal password"}
+                aria-pressed={revealed}
+                onClick={() => setRevealed((r) => !r)}
+              >
+                <Icon name={revealed ? "eyeOff" : "eye"} size={15} />
+              </IconButton>
+              <IconButton
+                aria-label="Copy password"
+                className={copied === "password" ? "is-copied" : ""}
+                onClick={() => password && copy(password, "password")}
+              >
+                <Icon name={copied === "password" ? "check" : "copy"} size={14} />
+              </IconButton>
+            </>
+          }
+        />
+        <Input
+          label="Notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Optional"
+        />
+
+        <div className="modal__foot">
+          <Button variant="ghost" onClick={onClose} disabled={isSaving}>
             Cancel
-          </button>
-          <button type="submit" disabled={isSaving}>
-            Save
-          </button>
+          </Button>
+          <Button variant="primary" type="submit" disabled={isSaving}>
+            {isSaving ? "Saving…" : "Save login"}
+          </Button>
         </div>
       </form>
-    </div>
+    </Modal>
   );
 }

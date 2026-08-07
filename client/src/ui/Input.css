@@ -1,0 +1,61 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.field__label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.field__wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  font: inherit;
+  font-size: var(--text-base);
+  padding: var(--s3);
+  border-radius: var(--r-sm);
+  border: var(--bw) solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text);
+  width: 100%;
+}
+
+.input::placeholder {
+  color: var(--soft);
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+  background: var(--surface);
+}
+
+.input--mono {
+  font-family: var(--mono);
+  letter-spacing: 0.05em;
+}
+
+.input--trailing {
+  padding-right: calc(var(--s7) + var(--s5));
+}
+
+.field__actions {
+  position: absolute;
+  right: var(--s1);
+  display: flex;
+  gap: var(--s1);
+}
+
+.field__error {
+  margin: 0;
+  color: var(--bad);
+  font-size: var(--text-sm);
+}

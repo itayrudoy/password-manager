@@ -1,3 +1,6 @@
+import { Modal } from "../ui/Modal";
+import { Button } from "../ui/Button";
+import { Icon } from "../ui/Icon";
 import type { Credential } from "./types";
 
 interface DeleteCredentialConfirmModalProps {
@@ -12,19 +15,24 @@ export function DeleteCredentialConfirmModal({
   onConfirm,
 }: DeleteCredentialConfirmModalProps) {
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2>Delete "{item.title}"?</h2>
-        <p>This can't be undone.</p>
-        <div className="actions">
-          <button type="button" onClick={onCancel}>
-            Cancel
-          </button>
-          <button type="button" onClick={onConfirm}>
-            Delete
-          </button>
-        </div>
+    <Modal onClose={onCancel} labelledBy="delete-title">
+      <span className="modal__warn" aria-hidden="true">
+        <Icon name="trash" size={20} />
+      </span>
+      <h2 className="modal__title" id="delete-title">
+        Delete “{item.title}”?
+      </h2>
+      <p className="modal__subtitle">
+        This permanently removes the login from your vault. This can’t be undone.
+      </p>
+      <div className="modal__foot">
+        <Button variant="outline" onClick={onCancel} autoFocus>
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={onConfirm}>
+          Delete
+        </Button>
       </div>
-    </div>
+    </Modal>
   );
 }
