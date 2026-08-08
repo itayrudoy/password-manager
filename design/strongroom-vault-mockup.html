@@ -1,0 +1,1242 @@
+<title>Strongroom — Vault</title>
+<style>
+  :root {
+    /* --- light ground (default) --- */
+    --paper: #ECEDE7;
+    --surface: #FAFAF6;
+    --surface-2: #F2F3EC;
+    --ink: #161F1A;
+    --muted: #58635B;
+    --faint: #8A948B;
+    --line: #DBDCD2;
+    --line-strong: #C8CABF;
+    --accent: #0B5B45;
+    --accent-2: #094a38;
+    --on-accent: #F2F5EE;
+    --brass: #A9803F;
+    --good: #1F7A54;
+    --warn: #B9760F;
+    --slate: #5E7183;
+    --bad: #B23A2E;
+    --tint: color-mix(in srgb, var(--accent) 9%, var(--surface));
+    --shadow: 0 1px 2px rgba(22,31,26,.05), 0 14px 30px -18px rgba(22,31,26,.30);
+    --shadow-soft: 0 1px 2px rgba(22,31,26,.04);
+    --barcode-bg: #E4E6DE;
+
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0E1512;
+      --surface: #141C18;
+      --surface-2: #19221D;
+      --ink: #E7EBE3;
+      --muted: #98A49B;
+      --faint: #66716A;
+      --line: #263029;
+      --line-strong: #354137;
+      --accent: #37B085;
+      --accent-2: #45c093;
+      --on-accent: #06231A;
+      --brass: #CB9E58;
+      --good: #40AC79;
+      --warn: #D9992E;
+      --slate: #7B90A2;
+      --bad: #DA5A4C;
+      --tint: color-mix(in srgb, var(--accent) 13%, var(--surface));
+      --shadow: 0 1px 2px rgba(0,0,0,.30), 0 16px 34px -18px rgba(0,0,0,.7);
+      --shadow-soft: 0 1px 2px rgba(0,0,0,.28);
+      --barcode-bg: #0B120F;
+      color-scheme: dark;
+    }
+  }
+
+  /* explicit toggle wins over the media query, both directions */
+  :root[data-theme="light"] {
+    --paper: #ECEDE7; --surface: #FAFAF6; --surface-2: #F2F3EC; --ink: #161F1A;
+    --muted: #58635B; --faint: #8A948B; --line: #DBDCD2; --line-strong: #C8CABF;
+    --accent: #0B5B45; --accent-2: #094a38; --on-accent: #F2F5EE; --brass: #A9803F;
+    --good: #1F7A54; --warn: #B9760F; --slate: #5E7183; --bad: #B23A2E;
+    --tint: color-mix(in srgb, var(--accent) 9%, var(--surface));
+    --shadow: 0 1px 2px rgba(22,31,26,.05), 0 14px 30px -18px rgba(22,31,26,.30);
+    --shadow-soft: 0 1px 2px rgba(22,31,26,.04);
+    --barcode-bg: #E4E6DE;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --paper: #0E1512; --surface: #141C18; --surface-2: #19221D; --ink: #E7EBE3;
+    --muted: #98A49B; --faint: #66716A; --line: #263029; --line-strong: #354137;
+    --accent: #37B085; --accent-2: #45c093; --on-accent: #06231A; --brass: #CB9E58;
+    --good: #40AC79; --warn: #D9992E; --slate: #7B90A2; --bad: #DA5A4C;
+    --tint: color-mix(in srgb, var(--accent) 13%, var(--surface));
+    --shadow: 0 1px 2px rgba(0,0,0,.30), 0 16px 34px -18px rgba(0,0,0,.7);
+    --shadow-soft: 0 1px 2px rgba(0,0,0,.28);
+    --barcode-bg: #0B120F;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: color-mix(in srgb, var(--accent) 26%, transparent); }
+  button { font-family: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 22px 24px 72px; }
+
+  /* ---------------- top bar ---------------- */
+  .bar {
+    display: flex; align-items: center; gap: 16px;
+    height: 60px;
+  }
+  .mark { display: flex; align-items: center; gap: 11px; flex: none; }
+  .mark__glyph {
+    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    background: var(--accent); color: var(--on-accent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--on-accent) 22%, transparent);
+  }
+  .mark__word {
+    font-family: var(--mono); font-weight: 600; font-size: 14px;
+    letter-spacing: .34em; text-transform: uppercase; padding-left: 2px;
+  }
+  .mark__word b { color: var(--accent); font-weight: 600; }
+
+  .search {
+    flex: 1; max-width: 460px; margin: 0 auto;
+    position: relative; display: flex; align-items: center;
+  }
+  .search svg { position: absolute; left: 13px; color: var(--faint); pointer-events: none; }
+  .search input {
+    width: 100%; height: 40px; border: 1px solid var(--line); border-radius: 11px;
+    background: var(--surface); color: var(--ink);
+    padding: 0 14px 0 38px; font-family: var(--mono); font-size: 13px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .search input::placeholder { color: var(--faint); font-family: var(--sans); }
+  .search input:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  .search kbd {
+    position: absolute; right: 10px; font-family: var(--mono); font-size: 11px;
+    color: var(--faint); border: 1px solid var(--line); border-radius: 5px;
+    padding: 1px 6px; background: var(--surface-2);
+  }
+
+  .bar__right { display: flex; align-items: center; gap: 10px; flex: none; }
+  .btn {
+    height: 40px; padding: 0 15px; border-radius: 11px; border: 1px solid transparent;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600; letter-spacing: -.01em;
+    transition: background .15s, border-color .15s, transform .05s;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn--primary { background: var(--accent); color: var(--on-accent); }
+  .btn--primary:hover { background: var(--accent-2); }
+  .btn--ghost { background: transparent; color: var(--muted); border-color: var(--line); }
+  .btn--ghost:hover { color: var(--ink); border-color: var(--line-strong); background: var(--surface); }
+  .iconbtn {
+    width: 40px; height: 40px; border-radius: 11px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--muted); display: grid; place-items: center;
+    transition: color .15s, border-color .15s;
+  }
+  .iconbtn:hover { color: var(--ink); border-color: var(--line-strong); }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 11px; border: none;
+    background: linear-gradient(150deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--brass)));
+    color: var(--on-accent); font-family: var(--mono); font-weight: 600; font-size: 13px;
+    display: grid; place-items: center; letter-spacing: .02em;
+  }
+
+  /* ---------------- health hero ---------------- */
+  .hero {
+    margin-top: 20px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 18px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .hero__top { display: flex; gap: 26px; padding: 22px 24px 6px; align-items: flex-start; }
+  .score { flex: none; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 8px;
+  }
+  .score__num {
+    font-family: var(--mono); font-size: 66px; line-height: .9; font-weight: 600;
+    letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums;
+    display: flex; align-items: baseline; gap: 4px;
+  }
+  .score__num small { font-size: 20px; color: var(--faint); font-weight: 400; }
+  .score__label {
+    margin-top: 12px; display: inline-flex; align-items: center; gap: 7px;
+    font-size: 13px; font-weight: 600; color: var(--good);
+  }
+  .score__label .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+  .score__sub { margin: 6px 0 0; color: var(--muted); font-size: 12.5px; max-width: 30ch; }
+
+  .posture { flex: 1; min-width: 0; align-self: stretch; display: flex; flex-direction: column; }
+  .posture__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .posture__head h2 { margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  .posture__scan { font-weight: 400; letter-spacing: .1em; }
+
+  /* collapse / expand the health hero */
+  .hero__peek {
+    display: none; width: 100%; align-items: center; gap: 18px;
+    padding: 15px 20px; background: transparent; border: none; text-align: left;
+    color: var(--ink); font: inherit;
+  }
+  .hero.collapsed .hero__full { display: none; }
+  .hero.collapsed .hero__peek { display: flex; }
+  .hero__peek:hover .peek__chev { color: var(--accent); }
+  .peek__score { display: inline-flex; align-items: center; gap: 8px; flex: none;
+    font-family: var(--mono); font-weight: 600; font-size: 22px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .peek__score .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+  .peek__score em { font-style: normal; font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--good); }
+  .peek__bar { display: flex; gap: 2px; width: 180px; height: 8px; flex: none; }
+  .peek__bar i { display: block; border-radius: 2px; }
+  .peek__counts { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .peek__chev { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; flex: none;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); transition: color .13s; }
+  .hero__collapse {
+    display: inline-flex; align-items: center; gap: 6px; flex: none; height: 28px; padding: 0 11px;
+    border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    transition: color .13s, border-color .13s;
+  }
+  .hero__collapse:hover { color: var(--ink); border-color: var(--line-strong); }
+  @media (max-width: 620px) {
+    .peek__counts { display: none; }
+    .peek__bar { width: 120px; }
+  }
+  .canvas-hold { position: relative; border-radius: 10px; overflow: hidden; background: var(--barcode-bg); }
+  canvas#barcode { display: block; width: 100%; height: 88px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 24px 22px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 13px 0 11px;
+    border-radius: 9px; border: 1px solid var(--line); background: var(--surface);
+    font-size: 12.5px; color: var(--muted); transition: border-color .15s, background .15s, color .15s;
+  }
+  .chip:hover { border-color: var(--line-strong); color: var(--ink); }
+  .chip[aria-pressed="true"] { border-color: var(--accent); background: var(--tint); color: var(--ink); }
+  .chip .sw { width: 9px; height: 9px; border-radius: 2.5px; }
+  .chip b { font-family: var(--mono); font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .sw--strong { background: var(--good); }
+  .sw--weak { background: var(--warn); }
+  .sw--reused { background: var(--slate); }
+  .sw--breached { background: var(--bad); }
+  .sw--all { background: var(--ink); }
+
+  /* ---------------- main split ---------------- */
+  .split { display: grid; grid-template-columns: 208px 1fr; gap: 24px; margin-top: 24px; align-items: start; }
+
+  .rail { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 2px; }
+  .rail__group { padding: 6px 0; }
+  .rail__label {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--faint); padding: 6px 12px 8px;
+  }
+  .nav {
+    display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+    padding: 8px 12px; border-radius: 10px; border: none; background: transparent;
+    color: var(--muted); font-size: 13.5px; font-weight: 500;
+    transition: background .13s, color .13s;
+  }
+  .nav:hover { background: var(--surface-2); color: var(--ink); }
+  .nav[aria-current="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-soft); font-weight: 600; }
+  .nav[aria-current="true"] svg { color: var(--accent); }
+  .nav svg { color: var(--faint); flex: none; }
+  .nav .count { margin-left: auto; font-family: var(--mono); font-size: 11.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .nav .tagdot { width: 8px; height: 8px; border-radius: 50%; margin-left: 1px; }
+  .rail__rule { height: 1px; background: var(--line); margin: 8px 4px; border: 0; }
+
+  /* ---------------- list ---------------- */
+  .listhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 4px; }
+  .listhead h1 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  .listhead h1 span { font-family: var(--mono); color: var(--faint); font-weight: 500; margin-left: 6px; font-size: 13px; }
+  .sort { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); background: transparent; border: none; }
+  .sort:hover { color: var(--ink); }
+
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .row {
+    display: grid; grid-template-columns: 42px 1fr auto; align-items: center; gap: 14px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 13px;
+    padding: 11px 14px; transition: border-color .14s, box-shadow .14s, transform .05s;
+  }
+  .row:hover { border-color: var(--line-strong); box-shadow: var(--shadow-soft); }
+  .row.is-fav { border-left: 2px solid var(--brass); }
+
+  .logo {
+    width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 600; font-size: 16px; color: #fff;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
+  }
+  .kindmark { position: relative; }
+  .kindmark::after {
+    content: ""; position: absolute; right: -3px; bottom: -3px; width: 15px; height: 15px;
+    border-radius: 5px; background: var(--surface); border: 1px solid var(--line);
+    background-repeat: no-repeat; background-position: center; background-size: 10px;
+  }
+
+  .info { min-width: 0; }
+  .info__title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; letter-spacing: -.01em; }
+  .info__title .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .star { border: none; background: none; padding: 0; display: grid; place-items: center; color: var(--faint); }
+  .star.on { color: var(--brass); }
+  .badge {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 5px; font-weight: 600; white-space: nowrap;
+  }
+  .badge--weak { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, var(--surface)); }
+  .badge--reused { color: var(--slate); background: color-mix(in srgb, var(--slate) 15%, var(--surface)); }
+  .badge--breached { color: var(--bad); background: color-mix(in srgb, var(--bad) 13%, var(--surface)); }
+
+  .info__meta { display: flex; align-items: center; gap: 7px; margin-top: 3px; color: var(--muted); font-size: 12.5px; min-width: 0; }
+  .info__meta .sub { font-family: var(--mono); font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .info__meta .sep { color: var(--faint); }
+  .tag {
+    font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 5px;
+    padding: 0 6px; line-height: 17px; white-space: nowrap;
+  }
+  .copy {
+    border: none; background: none; padding: 3px; border-radius: 6px; color: var(--faint);
+    display: inline-grid; place-items: center; transition: color .12s, background .12s;
+  }
+  .copy:hover { color: var(--accent); background: var(--tint); }
+  .copy.done { color: var(--good); }
+
+  .secret { display: flex; align-items: center; gap: 4px; }
+  .secret__val {
+    font-family: var(--mono); font-size: 13px; letter-spacing: .12em; color: var(--ink);
+    min-width: 108px; text-align: right; user-select: none;
+  }
+  .secret__val.revealed { letter-spacing: .02em; }
+  .secret__val.locked { color: var(--faint); letter-spacing: 0; font-size: 12px; }
+  .act { color: var(--faint); }
+  .act:hover { color: var(--ink); }
+
+  .rowacts { display: flex; align-items: center; gap: 2px; margin-left: 6px; opacity: 0; transition: opacity .14s; }
+  .row:hover .rowacts, .row:focus-within .rowacts { opacity: 1; }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); display: none; }
+  .empty.show { display: block; }
+  .empty h3 { margin: 12px 0 4px; color: var(--ink); font-size: 16px; }
+
+  .foot { margin-top: 40px; text-align: center; color: var(--faint); font-family: var(--mono); font-size: 11px; letter-spacing: .04em; }
+
+  @media (max-width: 820px) {
+    .split { grid-template-columns: 1fr; }
+    .rail { position: static; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+    .rail__group { display: contents; }
+    .rail__label, .rail__rule { display: none; }
+    .nav { width: auto; }
+    .nav .count { display: none; }
+  }
+  @media (max-width: 620px) {
+    .wrap { padding: 16px 14px 48px; }
+    .search { display: none; }
+    .hero__top { flex-direction: column; gap: 18px; }
+    .mark__word { letter-spacing: .18em; }
+    .secret__val { min-width: 74px; }
+    .rowacts { opacity: 1; }
+    .info__meta .tag { display: none; }
+  }
+  /* ---------------- modal ---------------- */
+  .overlay {
+    position: fixed; inset: 0; z-index: 50; display: none;
+    align-items: flex-start; justify-content: center; padding: 40px 20px;
+    background: color-mix(in srgb, #0a0f0c 52%, transparent);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+    overflow-y: auto;
+  }
+  .overlay.open { display: flex; animation: fade .16s ease; }
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px) scale(.99); } }
+
+  .modal {
+    width: 100%; max-width: 528px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow);
+    animation: rise .2s cubic-bezier(.2,.8,.2,1); margin: auto 0;
+  }
+  .modal__head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 18px 20px 0;
+  }
+  .modal__eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--faint); display: flex; align-items: center; gap: 8px;
+  }
+  .modal__eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .modal__close {
+    margin-left: auto; width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--muted); display: grid; place-items: center;
+  }
+  .modal__close:hover { color: var(--ink); border-color: var(--line-strong); }
+
+  .types { display: flex; gap: 4px; padding: 14px 20px 4px; }
+  .type {
+    flex: 1; height: 40px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--muted);
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    font-size: 12.5px; font-weight: 600; transition: all .13s;
+  }
+  .type:hover { border-color: var(--line-strong); color: var(--ink); }
+  .type[aria-pressed="true"] { background: var(--tint); border-color: var(--accent); color: var(--accent); }
+  .type svg { width: 15px; height: 15px; }
+
+  .form { padding: 8px 20px 4px; display: flex; flex-direction: column; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field > label {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--faint);
+  }
+  .control { position: relative; display: flex; align-items: center; }
+  .control input {
+    width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 11px;
+    background: var(--surface-2); color: var(--ink); padding: 0 12px;
+    font-family: var(--mono); font-size: 13.5px;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+  }
+  .control input::placeholder { color: var(--faint); }
+  .control input:focus {
+    outline: none; background: var(--surface); border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+  .control.has-actions input { padding-right: 96px; }
+  .inline-acts { position: absolute; right: 6px; display: flex; gap: 2px; }
+  .inline-acts button {
+    width: 30px; height: 30px; border: none; background: none; border-radius: 8px;
+    color: var(--faint); display: grid; place-items: center; transition: color .12s, background .12s;
+  }
+  .inline-acts button:hover { color: var(--accent); background: var(--tint); }
+  .inline-acts button.done { color: var(--good); }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .select {
+    height: 42px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-2);
+    color: var(--ink); padding: 0 12px; font-family: var(--sans); font-size: 13.5px;
+    appearance: none; background-repeat: no-repeat; background-position: right 12px center;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238A948B' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  }
+  .select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+
+  /* strength meter — echoes the vault barcode */
+  .strength { display: flex; align-items: center; gap: 10px; }
+  .strength__bars { display: flex; gap: 2px; flex: 1; }
+  .strength__bars i {
+    flex: 1; height: 6px; border-radius: 2px; background: var(--line-strong);
+    transition: background .2s;
+  }
+  .strength__tag { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .04em; min-width: 52px; text-align: right; color: var(--faint); }
+
+  /* generator options */
+  .genrow {
+    display: none; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 10px 12px; margin-top: 2px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 11px;
+  }
+  .genrow.open { display: flex; }
+  .genrow .lab { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .04em; }
+  .genrow input[type="range"] { flex: 1; min-width: 90px; accent-color: var(--accent); }
+  .genrow .len { font-family: var(--mono); font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 20px; text-align: right; }
+  .toggle {
+    font-family: var(--mono); font-size: 11px; padding: 4px 9px; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+  }
+  .toggle[aria-pressed="true"] { background: var(--tint); border-color: var(--accent); color: var(--accent); }
+
+  /* tags input */
+  .tagbox {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    min-height: 42px; border: 1px solid var(--line); border-radius: 11px;
+    background: var(--surface-2); padding: 6px 8px;
+  }
+  .tagbox:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+  .tagchip {
+    display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 4px 0 9px;
+    border-radius: 7px; background: var(--surface); border: 1px solid var(--line);
+    font-size: 12px; color: var(--ink);
+  }
+  .tagchip button { border: none; background: none; color: var(--faint); display: grid; place-items: center; padding: 2px; border-radius: 4px; }
+  .tagchip button:hover { color: var(--bad); }
+  .tagbox input { flex: 1; min-width: 70px; border: none; background: none; outline: none; color: var(--ink); font-family: var(--sans); font-size: 13px; height: 26px; }
+
+  .favrow {
+    display: flex; align-items: center; gap: 10px; padding: 2px 0 4px;
+  }
+  .switch {
+    width: 40px; height: 24px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--surface-2); position: relative; transition: background .16s, border-color .16s; flex: none;
+  }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--faint); transition: transform .16s, background .16s;
+  }
+  .switch[aria-pressed="true"] { background: color-mix(in srgb, var(--brass) 22%, var(--surface)); border-color: var(--brass); }
+  .switch[aria-pressed="true"]::after { transform: translateX(16px); background: var(--brass); }
+  .favrow label { font-size: 13.5px; color: var(--ink); }
+  .favrow .hint { color: var(--faint); font-size: 12px; }
+
+  .modal__foot {
+    display: flex; align-items: center; gap: 10px; padding: 16px 20px;
+    margin-top: 6px; border-top: 1px solid var(--line);
+  }
+  .modal__meta { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-right: auto; }
+  .btn--danger-ghost {
+    background: transparent; color: var(--bad); border: 1px solid transparent; margin-right: auto;
+    height: 40px; padding: 0 12px; border-radius: 11px; font-size: 13px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .btn--danger-ghost:hover { background: color-mix(in srgb, var(--bad) 12%, var(--surface)); }
+
+  @media (max-width: 520px) {
+    .row2 { grid-template-columns: 1fr; }
+    .overlay { padding: 16px 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <div class="mark">
+      <span class="mark__glyph" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><circle cx="12" cy="12" r="3.2"/><path d="M12 15.2V19"/></svg>
+      </span>
+      <span class="mark__word">Strong<b>room</b></span>
+    </div>
+
+    <label class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/></svg>
+      <input id="q" type="search" placeholder="Search vault — title, username, site" aria-label="Search vault" autocomplete="off">
+      <kbd>/</kbd>
+    </label>
+
+    <div class="bar__right">
+      <button class="iconbtn" id="theme" aria-label="Toggle theme" title="Toggle theme">
+        <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.6 6.6 0 0 0 21 12.8Z"/></svg>
+      </button>
+      <button class="btn btn--primary" id="new-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        New item
+      </button>
+      <button class="avatar" aria-label="Account">IR</button>
+    </div>
+  </header>
+
+  <!-- ===== health hero — the signature ===== -->
+  <section class="hero collapsed" id="hero" aria-label="Vault health">
+    <button class="hero__peek" id="hero-expand" aria-expanded="false" aria-controls="hero-full">
+      <span class="peek__score"><span class="dot"></span> 82 <em>Solid</em></span>
+      <span class="peek__bar" aria-hidden="true">
+        <i style="flex:40;background:var(--good)"></i>
+        <i style="flex:6;background:var(--warn)"></i>
+        <i style="flex:4;background:var(--slate)"></i>
+        <i style="flex:2;background:var(--bad)"></i>
+      </span>
+      <span class="peek__counts">40 strong · 6 weak · 4 reused · 2 breached</span>
+      <span class="peek__chev">Vault health
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </span>
+    </button>
+
+    <div class="hero__full" id="hero-full">
+    <div class="hero__top">
+      <div class="score">
+        <p class="eyebrow">Vault health</p>
+        <div class="score__num">82<small>/100</small></div>
+        <div class="score__label"><span class="dot"></span> Solid</div>
+        <p class="score__sub">Up 4 points this month. Fixing 2 breached logins clears the fastest wins.</p>
+      </div>
+
+      <div class="posture">
+        <div class="posture__head">
+          <h2>Password strength · 52 items <span class="posture__scan">· scanned 2h ago</span></h2>
+          <button class="hero__collapse" id="hero-collapse" aria-label="Hide vault health">
+            Hide
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>
+          </button>
+        </div>
+        <div class="canvas-hold">
+          <canvas id="barcode" width="900" height="176" role="img" aria-label="Each tick is one saved item, colored by password strength"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend" role="group" aria-label="Filter by strength">
+      <button class="chip" data-strength="all" aria-pressed="true"><span class="sw sw--all"></span> All <b>52</b></button>
+      <button class="chip" data-strength="strong" aria-pressed="false"><span class="sw sw--strong"></span> Strong <b>40</b></button>
+      <button class="chip" data-strength="weak" aria-pressed="false"><span class="sw sw--weak"></span> Weak <b>6</b></button>
+      <button class="chip" data-strength="reused" aria-pressed="false"><span class="sw sw--reused"></span> Reused <b>4</b></button>
+      <button class="chip" data-strength="breached" aria-pressed="false"><span class="sw sw--breached"></span> Breached <b>2</b></button>
+    </div>
+    </div><!-- /hero__full -->
+  </section>
+
+  <!-- ===== split: index rail + list ===== -->
+  <div class="split">
+    <nav class="rail" aria-label="Vault sections">
+      <div class="rail__group">
+        <button class="nav" data-kind="all" aria-current="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>
+          All items <span class="count">52</span>
+        </button>
+        <button class="nav" data-kind="fav">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17l-5.2 2.6 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>
+          Favorites <span class="count">4</span>
+        </button>
+      </div>
+
+      <hr class="rail__rule">
+      <div class="rail__group">
+        <p class="rail__label">Types</p>
+        <button class="nav" data-kind="login">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          Logins <span class="count">44</span>
+        </button>
+        <button class="nav" data-kind="note">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5h7"/></svg>
+          Secure notes <span class="count">4</span>
+        </button>
+        <button class="nav" data-kind="card">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18M7 15h4"/></svg>
+          Cards <span class="count">3</span>
+        </button>
+        <button class="nav" data-kind="identity">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg>
+          Identities <span class="count">1</span>
+        </button>
+      </div>
+
+      <hr class="rail__rule">
+      <div class="rail__group">
+        <p class="rail__label">Folders</p>
+        <button class="nav" data-folder="Personal">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Personal <span class="count">21</span>
+        </button>
+        <button class="nav" data-folder="Work">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Work <span class="count">18</span>
+        </button>
+        <button class="nav" data-folder="Finance">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Finance <span class="count">7</span>
+        </button>
+      </div>
+
+      <hr class="rail__rule">
+      <div class="rail__group">
+        <p class="rail__label">Tags</p>
+        <button class="nav" data-tag="2fa"><span class="tagdot" style="background:var(--good)"></span> 2fa on <span class="count">28</span></button>
+        <button class="nav" data-tag="shared"><span class="tagdot" style="background:var(--brass)"></span> shared <span class="count">5</span></button>
+        <button class="nav" data-tag="legacy"><span class="tagdot" style="background:var(--slate)"></span> legacy <span class="count">9</span></button>
+      </div>
+
+      <hr class="rail__rule">
+      <div class="rail__group">
+        <button class="nav" data-kind="trash">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
+          Trash <span class="count">3</span>
+        </button>
+      </div>
+    </nav>
+
+    <main>
+      <div class="listhead">
+        <h1 id="list-title">All items <span id="list-count">52 shown</span></h1>
+        <button class="sort">
+          Sorted by name
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </div>
+
+      <div class="list" id="list"></div>
+
+      <div class="empty" id="empty">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/></svg>
+        <h3>Nothing matches</h3>
+        <p>No items fit this filter. Clear the search or pick another section.</p>
+      </div>
+    </main>
+  </div>
+
+  <p class="foot">STRONGROOM · zero-knowledge · everything on this page is decrypted locally in your browser</p>
+</div>
+
+<!-- ===== create / edit modal ===== -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="m-eyebrow">
+  <div class="modal" role="document">
+    <div class="modal__head">
+      <span class="modal__eyebrow" id="m-eyebrow"><span class="dot"></span> <span id="m-mode">New item</span></span>
+      <button class="modal__close" id="m-close" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="types" role="group" aria-label="Item type">
+      <button class="type" data-type="login" aria-pressed="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Login
+      </button>
+      <button class="type" data-type="note" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/></svg> Note
+      </button>
+      <button class="type" data-type="card" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18"/></svg> Card
+      </button>
+      <button class="type" data-type="identity" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg> ID
+      </button>
+    </div>
+
+    <form class="form" id="m-form" autocomplete="off">
+      <div class="field">
+        <label for="f-name">Name</label>
+        <div class="control"><input id="f-name" type="text" placeholder="e.g. GitHub" required></div>
+      </div>
+
+      <div class="field" data-login-only>
+        <label for="f-user">Username or email</label>
+        <div class="control has-actions">
+          <input id="f-user" type="text" placeholder="you@example.com">
+          <div class="inline-acts">
+            <button type="button" data-copy-field="f-user" title="Copy username">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" data-login-only>
+        <label for="f-pw">Password</label>
+        <div class="control has-actions">
+          <input id="f-pw" type="password" placeholder="Type or generate">
+          <div class="inline-acts">
+            <button type="button" id="f-reveal" title="Reveal">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="2.6"/></svg>
+            </button>
+            <button type="button" data-copy-field="f-pw" title="Copy password">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
+            </button>
+            <button type="button" id="f-gen" title="Generate password">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v4h-4"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="strength" aria-live="polite">
+          <div class="strength__bars" id="f-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <span class="strength__tag" id="f-strtag">—</span>
+        </div>
+        <div class="genrow" id="f-genrow">
+          <span class="lab">length</span>
+          <input type="range" id="f-len" min="8" max="40" value="20">
+          <span class="len" id="f-lenval">20</span>
+          <button type="button" class="toggle" data-opt="upper" aria-pressed="true">A-Z</button>
+          <button type="button" class="toggle" data-opt="num" aria-pressed="true">0-9</button>
+          <button type="button" class="toggle" data-opt="sym" aria-pressed="true">!@#</button>
+          <button type="button" class="btn btn--primary" id="f-gen-do" style="height:32px;padding:0 12px;font-size:12px;margin-left:auto">Generate</button>
+        </div>
+      </div>
+
+      <div class="field" data-login-only>
+        <label for="f-site">Website</label>
+        <div class="control"><input id="f-site" type="text" placeholder="github.com"></div>
+      </div>
+
+      <div class="field" data-note-only style="display:none">
+        <label for="f-body">Content</label>
+        <div class="control"><input id="f-body" type="text" placeholder="Kept encrypted — only you can read it"></div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="f-folder">Folder</label>
+          <select class="select" id="f-folder">
+            <option>Personal</option><option>Work</option><option>Finance</option>
+            <option value="">No folder</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tags</label>
+          <div class="tagbox" id="f-tagbox">
+            <input id="f-tag-input" type="text" placeholder="Add tag…" aria-label="Add tag">
+          </div>
+        </div>
+      </div>
+
+      <div class="favrow">
+        <button type="button" class="switch" id="f-fav" aria-pressed="false" aria-label="Add to favorites"></button>
+        <label>Add to favorites <span class="hint">— pins to the top of your vault</span></label>
+      </div>
+    </form>
+
+    <div class="modal__foot">
+      <button type="button" class="btn--danger-ghost" id="m-delete" style="display:none">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
+        Delete
+      </button>
+      <span class="modal__meta" id="m-meta"></span>
+      <button type="button" class="btn btn--ghost" id="m-cancel">Cancel</button>
+      <button type="submit" form="m-form" class="btn btn--primary" id="m-save">Save item</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---- data (realistic sample vault) ----
+  const items = [
+    { name:"GitHub",        kind:"login", user:"itay@hey.com",     site:"github.com",        pw:"m@Q7-vElo9!zK2f", strength:"strong",   fav:true,  folder:"Work",    tags:["2fa"] },
+    { name:"Amazon Web Services", kind:"login", user:"root-itay",  site:"aws.amazon.com",    pw:"Tp4$Rn0wL!qXbe2", strength:"strong",   fav:true,  folder:"Work",    tags:["2fa"] },
+    { name:"Stripe",        kind:"login", user:"itay@studio.co",   site:"dashboard.stripe.com", pw:"9vN!kLd2#Rmq7Ea", strength:"strong", fav:false, folder:"Finance", tags:["2fa"] },
+    { name:"Google",        kind:"login", user:"itayrudoy15",      site:"accounts.google.com", pw:"correct-horse-9!", strength:"reused", fav:true,  folder:"Personal",tags:["2fa"] },
+    { name:"Figma",         kind:"login", user:"itay@studio.co",   site:"figma.com",         pw:"pass1234",         strength:"weak",     fav:false, folder:"Work",    tags:["shared"] },
+    { name:"Dropbox",       kind:"login", user:"itay@hey.com",     site:"dropbox.com",       pw:"Sunset2019",       strength:"breached", fav:false, folder:"Personal",tags:["legacy"] },
+    { name:"LinkedIn",      kind:"login", user:"itayrudoy",        site:"linkedin.com",      pw:"linkedin!123",     strength:"breached", fav:false, folder:"Personal",tags:["legacy"] },
+    { name:"Notion",        kind:"login", user:"itay@studio.co",   site:"notion.so",         pw:"Zt8&mPq1!vWx4Lo", strength:"strong",   fav:false, folder:"Work",    tags:["shared"] },
+    { name:"Cloudflare",    kind:"login", user:"itay@studio.co",   site:"dash.cloudflare.com", pw:"eK2#nRv9!Lp0aQt", strength:"strong", fav:false, folder:"Work",    tags:["2fa"] },
+    { name:"Netflix",       kind:"login", user:"family@hey.com",   site:"netflix.com",       pw:"correct-horse-9!", strength:"reused", fav:false, folder:"Personal",tags:["shared","legacy"] },
+    { name:"Discord",       kind:"login", user:"itay#4417",        site:"discord.com",       pw:"letmein2020",      strength:"weak",     fav:false, folder:"Personal",tags:["legacy"] },
+    { name:"Vercel",        kind:"login", user:"itay@studio.co",   site:"vercel.com",        pw:"Bq7!zXn2#Lm9Rvo", strength:"strong",   fav:false, folder:"Work",    tags:["2fa"] },
+    { name:"Chase Bank",    kind:"login", user:"itayr",            site:"chase.com",         pw:"Hn3$Kp9!wLq2Ztr", strength:"strong",   fav:false, folder:"Finance", tags:["2fa"] },
+    { name:"Linear",        kind:"login", user:"itay@studio.co",   site:"linear.app",        pw:"Vm5&Qp2!nLx8Rdk", strength:"strong",   fav:false, folder:"Work",    tags:["2fa"] },
+    { name:"Recovery kit",  kind:"note",  user:"Master recovery codes", site:"", pw:"", strength:"strong", fav:true, folder:"Personal", tags:["2fa"] },
+    { name:"Wi-Fi — home",  kind:"note",  user:"Network + guest passphrase", site:"", pw:"", strength:"strong", fav:false, folder:"Personal", tags:[] },
+    { name:"Chase Sapphire",kind:"card",  user:"Visa · exp 09/28", site:"", pw:"4712 8830 2245 6021", strength:"strong", fav:false, folder:"Finance", tags:["shared"] },
+    { name:"Amex Platinum", kind:"card",  user:"Amex · exp 03/27", site:"", pw:"3782 822463 10005", strength:"strong", fav:false, folder:"Finance", tags:[] },
+    { name:"Itay Rudoy",    kind:"identity", user:"Passport · license · address", site:"", pw:"", strength:"strong", fav:false, folder:"Personal", tags:[] },
+    { name:"Reddit",        kind:"login", user:"u/itayr",           site:"reddit.com",        pw:"reddit2018",       strength:"weak",     fav:false, folder:"Personal",tags:["legacy"] },
+  ];
+
+  const KIND_COUNT = { all: 52, login: 44, note: 4, card: 3, identity: 1, fav: 4, trash: 3 };
+  const KIND_ICON = {
+    login: '<path d="M6 12h6M6 9v6" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/>',
+    note:  '<path d="M6 6.5h6M6 9.5h6" stroke="var(--slate)" stroke-width="1.8" stroke-linecap="round"/>',
+    card:  '<path d="M4.5 8h9M4.5 10.5h4" stroke="var(--brass)" stroke-width="1.8" stroke-linecap="round"/>',
+    identity: '<circle cx="9" cy="7.5" r="2" stroke="var(--accent)" stroke-width="1.6"/><path d="M5.5 12.5a3.5 3.5 0 0 1 7 0" stroke="var(--accent)" stroke-width="1.6"/>',
+  };
+  const LOGO_HUE = {
+    GitHub:"#2b3138", "Amazon Web Services":"#c07a1e", Stripe:"#5b57d6", Google:"#2f7de1",
+    Figma:"#c1502e", Dropbox:"#2b6fe0", LinkedIn:"#2166a8", Notion:"#3a3a3a", Cloudflare:"#d38326",
+    Netflix:"#b2352b", Discord:"#4a54c4", Vercel:"#232323", "Chase Bank":"#1a5fa8", Linear:"#4b53b3",
+    "Recovery kit":"#0B5B45", "Wi-Fi — home":"#1F7A54", "Chase Sapphire":"#1a5fa8", "Amex Platinum":"#2166a8",
+    "Itay Rudoy":"#7a5aa0", Reddit:"#d0602e",
+  };
+
+  const $ = (s, r=document) => r.querySelector(s);
+  const listEl = $("#list"), emptyEl = $("#empty"), qEl = $("#q");
+  let state = { kind:"all", strength:"all", folder:null, tag:null, q:"" };
+
+  const strengthBadge = { weak:"Weak", reused:"Reused", breached:"Breached" };
+
+  function maskFor(it) {
+    if (it.kind === "note" || it.kind === "identity") return null;
+    return "•".repeat(it.kind === "card" ? 14 : 12);
+  }
+
+  function row(it) {
+    const el = document.createElement("div");
+    el.className = "row" + (it.fav ? " is-fav" : "");
+    const initial = it.name.trim()[0].toUpperCase();
+    const hue = LOGO_HUE[it.name] || "#4b5751";
+    const badge = strengthBadge[it.strength]
+      ? `<span class="badge badge--${it.strength}">${strengthBadge[it.strength]}</span>` : "";
+    const tags = it.tags.slice(0,2).map(t => `<span class="tag">${t}</span>`).join("");
+
+    const meta = it.site
+      ? `<span class="sub">${it.user}</span>
+         <button class="copy" title="Copy username" data-copy="${it.user}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg></button>
+         <span class="sep">·</span><span class="sub" style="color:var(--faint)">${it.site}</span>`
+      : `<span class="sub">${it.user}</span>`;
+
+    const mask = maskFor(it);
+    const secret = mask
+      ? `<span class="secret__val" data-real="${it.pw}" data-mask="${mask}">${mask}</span>
+         <button class="copy act" title="Reveal" data-reveal><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="2.6"/></svg></button>
+         <button class="copy act" title="Copy password" data-copy="${it.pw}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg></button>`
+      : `<span class="secret__val locked">Encrypted</span>
+         <button class="copy act" title="Open"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12h10M13 8l4 4-4 4"/></svg></button>`;
+
+    el.innerHTML = `
+      <div class="logo kindmark" style="background:${hue}" data-kind="${it.kind}">${initial}</div>
+      <div class="info">
+        <div class="info__title">
+          <button class="star ${it.fav ? "on" : ""}" title="Favorite" aria-pressed="${it.fav}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="${it.fav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17l-5.2 2.6 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>
+          </button>
+          <span class="name">${it.name}</span>${badge}
+        </div>
+        <div class="info__meta">${meta}${tags ? `<span class="sep">·</span>${tags}` : ""}</div>
+      </div>
+      <div class="secret">
+        ${secret}
+        <span class="rowacts">
+          <button class="copy act" title="Edit" data-edit><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18 10l-4-4L4 16z"/><path d="M13 7l4 4"/></svg></button>
+        </span>
+      </div>`;
+
+    // kind sub-badge glyph
+    const km = el.querySelector(".kindmark");
+    km.style.setProperty("--x","0");
+    const svgNS = "http://www.w3.org/2000/svg";
+    const badgeSvg = document.createElementNS(svgNS,"svg");
+    badgeSvg.setAttribute("viewBox","0 0 18 18");
+    badgeSvg.innerHTML = KIND_ICON[it.kind] || "";
+    badgeSvg.style.cssText = "position:absolute;right:-4px;bottom:-4px;width:16px;height:16px;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:1px";
+    km.appendChild(badgeSvg);
+
+    // interactions
+    el.querySelector(".star").addEventListener("click", e => {
+      const b = e.currentTarget, on = b.classList.toggle("on");
+      b.setAttribute("aria-pressed", on);
+      b.querySelector("svg").setAttribute("fill", on ? "currentColor" : "none");
+      el.classList.toggle("is-fav", on);
+    });
+    const rev = el.querySelector("[data-reveal]");
+    if (rev) rev.addEventListener("click", () => {
+      const v = el.querySelector(".secret__val");
+      const shown = v.classList.toggle("revealed");
+      v.textContent = shown ? v.dataset.real : v.dataset.mask;
+    });
+    const editBtn = el.querySelector("[data-edit]");
+    if (editBtn) editBtn.addEventListener("click", () => window.openItemModal("edit", it));
+    el.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
+      navigator.clipboard?.writeText(b.dataset.copy).catch(()=>{});
+      b.classList.add("done");
+      const old = b.innerHTML;
+      b.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>';
+      setTimeout(() => { b.classList.remove("done"); b.innerHTML = old; }, 1100);
+    }));
+    return el;
+  }
+
+  function matches(it) {
+    if (state.kind === "fav" && !it.fav) return false;
+    if (state.kind === "trash") return false; // trash is empty in this view
+    if (["login","note","card","identity"].includes(state.kind) && it.kind !== state.kind) return false;
+    if (state.strength !== "all" && it.strength !== state.strength) return false;
+    if (state.folder && it.folder !== state.folder) return false;
+    if (state.tag && !it.tags.includes(state.tag)) return false;
+    if (state.q) {
+      const hay = (it.name + " " + it.user + " " + it.site).toLowerCase();
+      if (!hay.includes(state.q)) return false;
+    }
+    return true;
+  }
+
+  function render() {
+    const shown = items.filter(matches);
+    listEl.innerHTML = "";
+    shown.forEach(it => listEl.appendChild(row(it)));
+    emptyEl.classList.toggle("show", shown.length === 0);
+    $("#list-count").textContent = shown.length + " shown";
+    let title = "All items";
+    if (state.kind === "fav") title = "Favorites";
+    else if (state.kind === "trash") title = "Trash";
+    else if (state.kind !== "all") title = ({login:"Logins",note:"Secure notes",card:"Cards",identity:"Identities"})[state.kind];
+    if (state.folder) title = state.folder;
+    if (state.tag) title = "#" + state.tag;
+    if (state.strength !== "all") title += " · " + state.strength;
+    $("#list-title").innerHTML = title + ' <span id="list-count">' + shown.length + " shown</span>";
+  }
+
+  // ---- rail nav ----
+  document.querySelectorAll(".nav").forEach(n => n.addEventListener("click", () => {
+    document.querySelectorAll(".nav").forEach(x => x.removeAttribute("aria-current"));
+    n.setAttribute("aria-current","true");
+    state.folder = n.dataset.folder || null;
+    state.tag = n.dataset.tag || null;
+    state.kind = n.dataset.kind || (n.dataset.folder || n.dataset.tag ? "all" : "all");
+    render();
+  }));
+
+  // ---- strength chips ----
+  document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed","false"));
+    c.setAttribute("aria-pressed","true");
+    state.strength = c.dataset.strength;
+    render();
+  }));
+
+  // ---- search ----
+  qEl.addEventListener("input", () => { state.q = qEl.value.trim().toLowerCase(); render(); });
+  addEventListener("keydown", e => {
+    if (e.key === "/" && document.activeElement !== qEl) { e.preventDefault(); qEl.focus(); }
+  });
+
+  // ---- theme toggle ----
+  const root = document.documentElement, ticon = $("#theme-icon");
+  const sun = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8L6 18M18 6l1.8-1.8"/>';
+  const moon = '<path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.6 6.6 0 0 0 21 12.8Z"/>';
+  $("#theme").addEventListener("click", () => {
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const cur = root.getAttribute("data-theme") || (dark ? "dark" : "light");
+    const next = cur === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    ticon.innerHTML = next === "dark" ? moon : sun;
+    drawBarcode();
+  });
+
+  // ---- signature: vault barcode ----
+  const cvs = $("#barcode"), ctx = cvs.getContext("2d");
+  // build tick sequence weighted by counts, lightly interleaved so bad ones aren't hidden
+  const seq = [];
+  const push = (k,n) => { for (let i=0;i<n;i++) seq.push(k); };
+  push("strong",40); push("weak",6); push("reused",4); push("breached",2);
+  // deterministic shuffle for stable look
+  let s = 7;
+  for (let i = seq.length - 1; i > 0; i--) { s = (s*1103515245 + 12345) & 0x7fffffff; const j = s % (i+1); [seq[i],seq[j]]=[seq[j],seq[i]]; }
+  const heights = seq.map((_,i) => { s=(s*1103515245+12345)&0x7fffffff; return 0.55 + (s%100)/100*0.45; });
+
+  function colorFor(k) {
+    const cs = getComputedStyle(root);
+    return { strong: cs.getPropertyValue("--good"), weak: cs.getPropertyValue("--warn"),
+             reused: cs.getPropertyValue("--slate"), breached: cs.getPropertyValue("--bad") }[k].trim();
+  }
+
+  let animStart = null;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function drawBarcode(t) {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const w = cvs.clientWidth, h = cvs.clientHeight;
+    cvs.width = w*dpr; cvs.height = h*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,w,h);
+    const n = seq.length, gap = 3, tickW = (w - gap*(n-1)) / n;
+    const prog = reduce ? 1 : (animStart == null ? 0 : Math.min(1, (t - animStart)/750));
+    for (let i=0;i<n;i++) {
+      const grow = Math.max(0, Math.min(1, prog*1.6 - i/n*0.6));
+      const eased = 1 - Math.pow(1-grow, 3);
+      const bh = h * heights[i] * eased;
+      const x = i*(tickW+gap), y = (h - bh)/2;
+      ctx.fillStyle = colorFor(seq[i]);
+      ctx.globalAlpha = seq[i] === "strong" ? 0.9 : 1;
+      const r = Math.min(tickW/2, 2);
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(x,y,tickW,bh,r) : ctx.rect(x,y,tickW,bh);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (!reduce && prog < 1) requestAnimationFrame(drawBarcode);
+  }
+  function startBarcode(t){ animStart = t; drawBarcode(t); }
+
+  render();
+  let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(drawBarcode, 120); });
+
+  // ---- collapse / expand the health hero (remembers your choice) ----
+  const hero = $("#hero");
+  function setHero(open, persist = true) {
+    hero.classList.toggle("collapsed", !open);
+    $("#hero-expand").setAttribute("aria-expanded", String(open));
+    if (persist) { try { localStorage.setItem("sr-hero", open ? "1" : "0"); } catch (e) {} }
+    if (open) { // redraw + replay the barcode now that the canvas is visible
+      if (reduce) drawBarcode();
+      else requestAnimationFrame(t => startBarcode(t));
+    }
+  }
+  $("#hero-expand").addEventListener("click", () => setHero(true));
+  $("#hero-collapse").addEventListener("click", () => setHero(false));
+  let savedHero = null; try { savedHero = localStorage.getItem("sr-hero"); } catch (e) {}
+  setHero(savedHero === "1", false); // default: collapsed on first visit
+
+  // expose to the modal script
+  window.__vault = { items, render };
+})();
+
+// ===== create / edit modal =====
+(() => {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const overlay = $("#overlay"), form = $("#m-form");
+  let mode = "create", editing = null, curType = "login", tags = [];
+
+  // --- password strength (length + character variety) ---
+  function scorePw(pw) {
+    if (!pw) return 0;
+    let classes = 0;
+    if (/[a-z]/.test(pw)) classes++;
+    if (/[A-Z]/.test(pw)) classes++;
+    if (/[0-9]/.test(pw)) classes++;
+    if (/[^A-Za-z0-9]/.test(pw)) classes++;
+    let s = 0;
+    if (pw.length >= 8) s++;
+    if (pw.length >= 12) s++;
+    if (pw.length >= 20) s++;
+    s += classes - 1;                 // variety
+    if (pw.length < 8) s = Math.min(s, 1);
+    return Math.max(0, Math.min(6, s));
+  }
+  function paintStrength() {
+    const pw = $("#f-pw").value;
+    const score = scorePw(pw);
+    const bars = document.querySelectorAll("#f-bars i");
+    const filled = Math.round(score / 6 * bars.length);
+    let color = "var(--warn)", label = "Weak";
+    if (score >= 5) { color = "var(--good)"; label = "Strong"; }
+    else if (score >= 3) { color = "var(--brass)"; label = "Fair"; }
+    if (!pw) { label = "—"; }
+    bars.forEach((b, i) => b.style.background = (pw && i < filled) ? color : "var(--line-strong)");
+    const tag = $("#f-strtag"); tag.textContent = label; tag.style.color = pw ? color : "var(--faint)";
+  }
+
+  // --- generator ---
+  function genPw() {
+    const len = +$("#f-len").value;
+    let pool = "abcdefghijkmnpqrstuvwxyz";
+    if ($('[data-opt="upper"]').getAttribute("aria-pressed") === "true") pool += "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    if ($('[data-opt="num"]').getAttribute("aria-pressed") === "true") pool += "23456789";
+    if ($('[data-opt="sym"]').getAttribute("aria-pressed") === "true") pool += "!@#$%^&*-_=+?";
+    const arr = new Uint32Array(len); crypto.getRandomValues(arr);
+    let out = ""; for (let i = 0; i < len; i++) out += pool[arr[i] % pool.length];
+    const f = $("#f-pw"); f.value = out; f.type = "text"; paintStrength();
+  }
+
+  // --- tags ---
+  function renderTags() {
+    const box = $("#f-tagbox"), input = $("#f-tag-input");
+    box.querySelectorAll(".tagchip").forEach(c => c.remove());
+    tags.forEach((t, i) => {
+      const chip = document.createElement("span");
+      chip.className = "tagchip";
+      chip.innerHTML = `${t}<button type="button" aria-label="Remove ${t}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+      chip.querySelector("button").addEventListener("click", () => { tags.splice(i, 1); renderTags(); });
+      box.insertBefore(chip, input);
+    });
+  }
+  function addTag(v) {
+    v = v.trim().toLowerCase().replace(/^#/, "");
+    if (v && !tags.includes(v)) { tags.push(v); renderTags(); }
+  }
+
+  // --- type switch ---
+  function setType(t) {
+    curType = t;
+    document.querySelectorAll(".type").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.type === t)));
+    const login = t === "login";
+    document.querySelectorAll("[data-login-only]").forEach(el => el.style.display = login ? "" : "none");
+    $("[data-note-only]").style.display = (t === "note" || t === "identity") ? "" : "none";
+    const bodyLabel = $("[data-note-only] label");
+    if (bodyLabel) bodyLabel.textContent = t === "card" ? "Card number" : "Content";
+    $("#f-name").placeholder = { login: "e.g. GitHub", note: "e.g. Recovery kit", card: "e.g. Chase Sapphire", identity: "e.g. Itay Rudoy" }[t];
+  }
+
+  function setFav(on) { $("#f-fav").setAttribute("aria-pressed", String(on)); }
+
+  // --- open ---
+  window.openItemModal = function (m, item) {
+    mode = m; editing = item || null;
+    form.reset(); tags = [];
+    $("#f-pw").type = "password";
+    $("#f-genrow").classList.remove("open");
+
+    $("#m-mode").textContent = m === "edit" ? "Edit item" : "New item";
+    $("#m-save").textContent = m === "edit" ? "Save changes" : "Create item";
+    $("#m-delete").style.display = m === "edit" ? "" : "none";
+    $("#m-meta").textContent = m === "edit" ? "updated 3 days ago" : "";
+
+    if (item) {
+      setType(item.kind);
+      $("#f-name").value = item.name;
+      $("#f-user").value = item.site ? item.user : "";
+      $("#f-pw").value = item.pw || "";
+      $("#f-site").value = item.site || "";
+      $("#f-folder").value = item.folder || "";
+      if ($("#f-body")) $("#f-body").value = item.site ? "" : (item.user || item.pw || "");
+      tags = [...(item.tags || [])];
+      setFav(!!item.fav);
+    } else {
+      setType("login"); setFav(false);
+    }
+    renderTags(); paintStrength();
+    overlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => $("#f-name").focus(), 40);
+  };
+
+  function close() { overlay.classList.remove("open"); document.body.style.overflow = ""; }
+
+  // --- save ---
+  function save(e) {
+    e.preventDefault();
+    const name = $("#f-name").value.trim() || "Untitled";
+    const strength = curType === "login" ? scoreToStrength() : "strong";
+    const data = {
+      name, kind: curType,
+      user: curType === "login" ? $("#f-user").value.trim() : ($("#f-body") ? $("#f-body").value.trim() : ""),
+      site: curType === "login" ? $("#f-site").value.trim() : "",
+      pw: (curType === "login" || curType === "card") ? $("#f-pw").value : "",
+      strength, fav: $("#f-fav").getAttribute("aria-pressed") === "true",
+      folder: $("#f-folder").value, tags: [...tags],
+    };
+    if (curType === "card") { data.pw = $("#f-body") ? $("#f-body").value : ""; data.user = "Card · exp 00/00"; }
+
+    const { items, render } = window.__vault;
+    if (mode === "edit" && editing) {
+      Object.assign(editing, data);
+    } else {
+      items.unshift(data);
+    }
+    render();
+    close();
+  }
+  function scoreToStrength() {
+    const s = scorePw($("#f-pw").value);
+    return s >= 5 ? "strong" : s >= 3 ? "reused" : "weak";
+  }
+
+  // --- delete ---
+  $("#m-delete").addEventListener("click", () => {
+    if (!editing) return;
+    const { items, render } = window.__vault;
+    const i = items.indexOf(editing);
+    if (i > -1) items.splice(i, 1);
+    render(); close();
+  });
+
+  // --- wiring ---
+  $("#new-item").addEventListener("click", () => window.openItemModal("create"));
+  $("#m-close").addEventListener("click", close);
+  $("#m-cancel").addEventListener("click", close);
+  overlay.addEventListener("mousedown", e => { if (e.target === overlay) close(); });
+  addEventListener("keydown", e => { if (e.key === "Escape" && overlay.classList.contains("open")) close(); });
+  form.addEventListener("submit", save);
+
+  document.querySelectorAll(".type").forEach(b => b.addEventListener("click", () => setType(b.dataset.type)));
+  $("#f-pw").addEventListener("input", paintStrength);
+  $("#f-reveal").addEventListener("click", () => {
+    const f = $("#f-pw"); f.type = f.type === "password" ? "text" : "password";
+  });
+  $("#f-gen").addEventListener("click", () => { $("#f-genrow").classList.toggle("open"); genPw(); });
+  $("#f-gen-do").addEventListener("click", genPw);
+  $("#f-len").addEventListener("input", () => { $("#f-lenval").textContent = $("#f-len").value; });
+  document.querySelectorAll("[data-opt]").forEach(b => b.addEventListener("click", () => {
+    b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true"));
+  }));
+  $("#f-fav").addEventListener("click", () => setFav($("#f-fav").getAttribute("aria-pressed") !== "true"));
+  document.querySelectorAll("[data-copy-field]").forEach(b => b.addEventListener("click", () => {
+    const v = document.getElementById(b.dataset.copyField).value;
+    navigator.clipboard?.writeText(v).catch(() => {});
+    b.classList.add("done");
+    const old = b.innerHTML;
+    b.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>';
+    setTimeout(() => { b.classList.remove("done"); b.innerHTML = old; }, 1100);
+  }));
+  const tagInput = $("#f-tag-input");
+  tagInput.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(tagInput.value); tagInput.value = ""; }
+    else if (e.key === "Backspace" && !tagInput.value && tags.length) { tags.pop(); renderTags(); }
+  });
+})();
+</script>
