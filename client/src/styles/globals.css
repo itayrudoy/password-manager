@@ -28,47 +28,74 @@ svg {
   margin: 0;
 }
 
-/* --- Auth screens: not yet migrated to the design system (PM-3) --- */
+/* --- Auth screens: on Strongroom tokens; full primitive migration is PM-3 --- */
 .auth-page {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  padding: var(--s5);
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  width: 320px;
-  padding: 2rem;
+  gap: var(--s3);
+  width: 340px;
+  padding: var(--s6);
   background: var(--surface);
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow);
 }
 
 .auth-form label {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.9rem;
+  gap: var(--s1);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--soft);
 }
 
 .auth-form input {
-  padding: 0.5rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  height: 42px;
+  padding: 0 var(--s3);
+  font-family: var(--mono);
+  font-size: 13.5px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: var(--bw) solid var(--border);
+  border-radius: 11px;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.auth-form input:focus-visible {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
 }
 
 .auth-form button {
-  padding: 0.6rem;
-  font-size: 1rem;
+  height: var(--control-h);
+  margin-top: var(--s1);
+  font-family: var(--font);
+  font-size: var(--text-sm);
+  font-weight: 600;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border: none;
-  border-radius: 4px;
+  border-radius: 11px;
   cursor: pointer;
+  transition: background 0.15s;
+}
+
+.auth-form button:hover {
+  background: var(--accent-hover);
 }
 
 @media (prefers-reduced-motion: reduce) {

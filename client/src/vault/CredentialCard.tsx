@@ -3,6 +3,7 @@ import { Card } from "../ui/Card";
 import { IconButton } from "../ui/IconButton";
 import { Icon } from "../ui/Icon";
 import { useCopyFeedback } from "../lib/useCopyFeedback";
+import { logoColor } from "./logoColor";
 import type { Credential } from "./types";
 import "./CredentialCard.css";
 
@@ -23,7 +24,7 @@ export function CredentialCard({ item, onEdit, onDelete }: CredentialCardProps) 
 
   return (
     <Card className="row">
-      <div className="row__logo" aria-hidden="true">
+      <div className="row__logo" style={{ background: logoColor(title) }} aria-hidden="true">
         {initial}
       </div>
 

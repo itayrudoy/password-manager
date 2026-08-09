@@ -50,33 +50,37 @@ export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormMo
 
   return (
     <Modal onClose={onClose} labelledBy="credential-form-title">
-      <h2 className="modal__title" id="credential-form-title">
-        {item ? "Edit login" : "New login"}
-      </h2>
-      <p className="modal__subtitle">
-        {item ? "Update the details for this login." : "Add a set of credentials to your vault."}
-      </p>
+      <div className="modal__head">
+        <span className="modal__eyebrow" id="credential-form-title">
+          <span className="modal__dot" aria-hidden="true" />
+          {item ? "Edit login" : "New login"}
+        </span>
+        <button
+          type="button"
+          className="modal__close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <Icon name="close" size={16} />
+        </button>
+      </div>
 
       <form className="form" onSubmit={handleSubmit}>
         {error && <p className="error">{error}</p>}
 
         <Input
-          label="Title"
+          label="Name"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          placeholder="e.g. GitHub"
           required
           autoFocus
         />
         <Input
-          label="Website"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="example.com"
-        />
-        <Input
-          label="Username"
+          label="Username or email"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          placeholder="you@example.com"
         />
         <Input
           label="Password"
@@ -103,6 +107,12 @@ export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormMo
               </IconButton>
             </>
           }
+        />
+        <Input
+          label="Website"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="github.com"
         />
         <Input
           label="Notes"

@@ -1,16 +1,22 @@
 .btn {
   font: inherit;
-  font-weight: 650;
-  font-size: var(--text-base);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  letter-spacing: -0.01em;
   cursor: pointer;
-  border-radius: var(--r-md);
-  padding: var(--s3) var(--s4);
+  border-radius: 11px;
+  padding: 0 var(--s4);
+  height: var(--control-h);
   border: var(--bw) solid transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--s2);
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.05s;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .btn:focus-visible {

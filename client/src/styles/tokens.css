@@ -1,39 +1,48 @@
 /* Design tokens — the single source of truth for the visual system (PM-2).
    Raw color / px / rgba values live ONLY in this file; everything else
-   references these custom properties. */
+   references these custom properties.
+
+   Visual direction: "Strongroom" (see design/strongroom-vault-mockup.html).
+   Vault-green accent on warm paper, a monospace personality face for the
+   wordmark / secrets / numbers, and a full dark theme. The token *names*
+   are kept stable so every screen keeps referencing the same API. */
 
 :root {
   /* ---- Color: surfaces ---- */
-  --bg: #f5f6f9;
-  --inner: #f7f8fb;
-  --surface: #ffffff;
-  --surface-2: #fbfcfe;
+  --bg: #ecede7; /* paper — the ground */
+  --inner: #fafaf6; /* card surface (alias of --surface) */
+  --surface: #fafaf6;
+  --surface-2: #f2f3ec; /* sunken surface */
 
   /* ---- Color: lines & text ---- */
-  --border: #e6e8ef;
-  --border-strong: #d6dae4;
-  --text: #161a22;
-  --muted: #5a6474;
-  --soft: #8a93a4;
+  --border: #dbdcd2;
+  --border-strong: #c8cabf;
+  --text: #161f1a; /* ink */
+  --muted: #58635b;
+  --soft: #8a948b; /* faint */
 
-  /* ---- Color: accent (Azure) ---- */
-  --accent: #2563eb;
-  --accent-hover: #1d4fd7;
-  --on-accent: #ffffff;
-  --on-bar: #ffffff;
+  /* ---- Color: accent (vault green) ---- */
+  --accent: #0b5b45;
+  --accent-hover: #094a38;
+  --on-accent: #f2f5ee;
+  --on-bar: #f2f5ee;
 
-  /* ---- Color: status ---- */
-  --good: #16a34a;
-  --warn: #d97706;
-  --bad: #dc2626;
+  /* ---- Color: favorites (brass) ---- */
+  --brass: #a9803f;
+
+  /* ---- Color: status / strength (kept separate from the accent) ---- */
+  --good: #1f7a54; /* strong */
+  --warn: #b9760f; /* weak */
+  --slate: #5e7183; /* reused */
+  --bad: #b23a2e; /* breached / danger */
 
   /* ---- Derived accents ---- */
-  --tint: color-mix(in srgb, var(--accent) 12%, var(--surface));
-  --ring: color-mix(in srgb, var(--accent) 35%, transparent);
+  --tint: color-mix(in srgb, var(--accent) 9%, var(--surface));
+  --ring: color-mix(in srgb, var(--accent) 30%, transparent);
   --accent-text: color-mix(in srgb, var(--accent) 82%, var(--text));
-  --logo-border: color-mix(in srgb, var(--accent) 18%, var(--border));
+  --logo-border: color-mix(in srgb, var(--accent) 16%, var(--border));
 
-  /* ---- Translucent whites for the colored top bar ---- */
+  /* ---- Translucent whites (legacy, kept for compatibility) ---- */
   --bar-fill: color-mix(in srgb, var(--on-bar) 18%, transparent);
   --bar-border: color-mix(in srgb, var(--on-bar) 24%, transparent);
   --bar-hover: color-mix(in srgb, var(--on-bar) 14%, transparent);
@@ -43,7 +52,7 @@
   --good-wash: color-mix(in srgb, var(--good) 12%, var(--surface));
 
   /* ---- Overlay scrim ---- */
-  --scrim: color-mix(in srgb, var(--text) 45%, transparent);
+  --scrim: color-mix(in srgb, #0a0f0c 52%, transparent);
 
   /* ---- Spacing: single scale ---- */
   --s1: 4px;
@@ -55,7 +64,7 @@
   --s7: 48px;
 
   /* ---- Radii ---- */
-  --r-sm: 8px;
+  --r-sm: 9px;
   --r-md: 12px;
   --r-lg: 16px;
   --r-xl: 20px;
@@ -63,7 +72,7 @@
 
   /* ---- Typography ---- */
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif;
-  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --text-xs: 12px;
   --text-sm: 13px;
   --text-base: 14px;
@@ -71,25 +80,90 @@
   --text-lg: 18px;
 
   /* ---- Sizing: component geometry ---- */
-  --content-max: 1000px;
-  --bar-h: 64px;
+  --content-max: 1120px;
+  --rail-w: 208px;
+  --bar-h: 60px;
   --glyph: 34px;
-  --avatar: 36px;
+  --avatar: 40px;
   --logo: 42px;
   --icon-sm: 22px;
   --icon-md: 30px;
   --icon-lg: 32px;
+  --control-h: 40px;
 
   /* ---- Borders & focus ---- */
   --bw: 1px;
   --focus-ring: 0 0 0 3px var(--ring);
 
   /* ---- Shadow ---- */
-  --shadow: 0 1px 2px rgba(20, 26, 40, 0.06), 0 8px 24px -12px rgba(20, 26, 40, 0.18);
-  --shadow-lg: 0 30px 70px -24px rgba(20, 26, 40, 0.4);
+  --shadow: 0 1px 2px rgba(22, 31, 26, 0.05), 0 14px 30px -18px rgba(22, 31, 26, 0.3);
+  --shadow-soft: 0 1px 2px rgba(22, 31, 26, 0.04);
+  --shadow-lg: 0 30px 70px -24px rgba(22, 31, 26, 0.4);
 
   color-scheme: light;
 }
 
-/* Light-only for now. A dark theme can be added later by defining the same
-   tokens under @media (prefers-color-scheme: dark) — see the mockup for values. */
+/* ---- Dark theme ----
+   Follows the OS by default; the in-app toggle stamps [data-theme] on <html>
+   and wins over the media query in both directions. Only the base tokens and
+   the literal shadows/tint are redefined — the color-mix() derived tokens
+   above resolve against whichever base values are in scope, so they adapt. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1512;
+    --inner: #141c18;
+    --surface: #141c18;
+    --surface-2: #19221d;
+    --border: #263029;
+    --border-strong: #354137;
+    --text: #e7ebe3;
+    --muted: #98a49b;
+    --soft: #66716a;
+    --accent: #37b085;
+    --accent-hover: #45c093;
+    --on-accent: #06231a;
+    --on-bar: #06231a;
+    --brass: #cb9e58;
+    --good: #40ac79;
+    --warn: #d9992e;
+    --slate: #7b90a2;
+    --bad: #da5a4c;
+    --tint: color-mix(in srgb, var(--accent) 13%, var(--surface));
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 34px -18px rgba(0, 0, 0, 0.7);
+    --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.28);
+    --shadow-lg: 0 40px 90px -30px rgba(0, 0, 0, 0.75);
+    --scrim: color-mix(in srgb, #05100b 60%, transparent);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0e1512;
+  --inner: #141c18;
+  --surface: #141c18;
+  --surface-2: #19221d;
+  --border: #263029;
+  --border-strong: #354137;
+  --text: #e7ebe3;
+  --muted: #98a49b;
+  --soft: #66716a;
+  --accent: #37b085;
+  --accent-hover: #45c093;
+  --on-accent: #06231a;
+  --on-bar: #06231a;
+  --brass: #cb9e58;
+  --good: #40ac79;
+  --warn: #d9992e;
+  --slate: #7b90a2;
+  --bad: #da5a4c;
+  --tint: color-mix(in srgb, var(--accent) 13%, var(--surface));
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 34px -18px rgba(0, 0, 0, 0.7);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 40px 90px -30px rgba(0, 0, 0, 0.75);
+  --scrim: color-mix(in srgb, #05100b 60%, transparent);
+  color-scheme: dark;
+}
