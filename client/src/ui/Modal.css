@@ -2,8 +2,8 @@
   position: fixed;
   inset: 0;
   background: var(--scrim);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(var(--scrim-blur));
+  backdrop-filter: blur(var(--scrim-blur));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -21,7 +21,7 @@
 @keyframes modal-rise {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.99);
+    transform: translateY(var(--s3)) scale(0.99);
   }
 }
 
@@ -32,7 +32,7 @@
   box-shadow: var(--shadow-lg);
   padding: var(--s5);
   width: 100%;
-  max-width: 480px;
+  max-width: var(--modal-w);
   max-height: calc(100vh - var(--s7));
   overflow-y: auto;
   display: flex;
@@ -52,7 +52,7 @@
 
 .modal__eyebrow {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--soft);
@@ -62,16 +62,16 @@
 }
 
 .modal__dot {
-  width: 7px;
-  height: 7px;
+  width: var(--s2);
+  height: var(--s2);
   border-radius: var(--r-pill);
   background: var(--accent);
 }
 
 .modal__close {
   margin-left: auto;
-  width: 32px;
-  height: 32px;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
   border-radius: var(--r-sm);
   border: var(--bw) solid var(--border);
   background: var(--surface);

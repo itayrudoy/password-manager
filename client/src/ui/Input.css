@@ -6,7 +6,7 @@
 
 .field__label {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -21,10 +21,10 @@
 
 .input {
   font: inherit;
-  font-size: 13.5px;
-  height: 42px;
+  font-size: var(--text-base);
+  height: var(--input-h);
   padding: 0 var(--s3);
-  border-radius: 11px;
+  border-radius: var(--r-ctl);
   border: var(--bw) solid var(--border);
   background: var(--surface-2);
   color: var(--text);
