@@ -19,6 +19,7 @@ export type IconName =
   | "sun"
   | "moon"
   | "chevronDown"
+  | "logout"
   | "close";
 
 const paths: Record<IconName, ReactElement> = {
@@ -98,6 +99,12 @@ const paths: Record<IconName, ReactElement> = {
   ),
   moon: <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />,
   chevronDown: <path d="M6 9l6 6 6-6" />,
+  logout: (
+    <>
+      <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />
+      <path d="M10 17l-5-5 5-5M4 12h11" />
+    </>
+  ),
   close: <path d="M6 6l12 12M18 6L6 18" />,
 };
 

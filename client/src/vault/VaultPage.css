@@ -144,6 +144,86 @@
   box-shadow: var(--focus-ring);
 }
 
+/* ---- Account menu (avatar popover) ---- */
+.account {
+  position: relative;
+  flex: none;
+}
+
+.account__menu {
+  position: absolute;
+  top: calc(100% + var(--s2));
+  right: 0;
+  z-index: 20;
+  min-width: 200px;
+  padding: var(--s1);
+  background: var(--surface);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+}
+
+.account__id {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s2) var(--s3) var(--s3);
+  border-bottom: var(--bw) solid var(--border);
+  margin-bottom: var(--s1);
+}
+
+.account__id-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+.account__id-email {
+  font-size: var(--text-sm);
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  text-align: left;
+  padding: var(--s2) var(--s3);
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+}
+
+.account__item svg {
+  color: var(--soft);
+  flex: none;
+}
+
+.account__item:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.account__item:hover svg {
+  color: var(--accent);
+}
+
+.account__item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 /* ---- Main split ---- */
 .split {
   display: grid;

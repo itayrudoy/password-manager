@@ -43,6 +43,11 @@
   background: var(--surface);
 }
 
+.input:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .input--mono {
   font-family: var(--mono);
   letter-spacing: 0.05em;

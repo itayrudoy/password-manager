@@ -1,7 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "../api/client";
+import { Button } from "../ui/Button";
+import { Card } from "../ui/Card";
+import { Icon } from "../ui/Icon";
+import { Input } from "../ui/Input";
 import { useAuth } from "./AuthContext";
+import "./Auth.css";
 
 export function SignupPage() {
   const { signup } = useAuth();
@@ -9,42 +14,62 @@ export function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setIsSubmitting(true);
     try {
       await signup(email, password);
       navigate("/");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Sign up failed");
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <div className="auth-page">
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <h1>Sign up</h1>
-        {error && <p className="error">{error}</p>}
-        <label>
-          Email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label>
-          Password
-          <input
+    <div className="auth">
+      <div className="auth__brand">
+        <span className="auth__glyph" aria-hidden="true">
+          <Icon name="shield" size={19} />
+        </span>
+        <span className="auth__word">Vault</span>
+      </div>
+
+      <Card className="auth__card">
+        <form className="auth__form" onSubmit={handleSubmit}>
+          <h1 className="auth__title">Sign up</h1>
+          {error && <p className="error">{error}</p>}
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+            disabled={isSubmitting}
+            autoFocus
+          />
+          <Input
+            label="Password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
             required
             minLength={8}
+            disabled={isSubmitting}
           />
-        </label>
-        <button type="submit">Sign up</button>
-        <p>
-          Already have an account? <Link to="/login">Log in</Link>
-        </p>
-      </form>
+          <Button className="auth__submit" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Creating account…" : "Sign up"}
+          </Button>
+          <p className="auth__alt">
+            Already have an account? <Link to="/login">Log in</Link>
+          </p>
+        </form>
+      </Card>
     </div>
   );
 }

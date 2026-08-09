@@ -81,6 +81,7 @@
 
   /* ---- Sizing: component geometry ---- */
   --content-max: 1120px;
+  --auth-w: 360px; /* auth card width */
   --rail-w: 208px;
   --bar-h: 60px;
   --glyph: 34px;
