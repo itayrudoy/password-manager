@@ -1,16 +1,61 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
+import { useTheme } from "../lib/useTheme";
 import { Button } from "../ui/Button";
-import { Icon } from "../ui/Icon";
+import { Icon, type IconName } from "../ui/Icon";
 import { CredentialCard } from "./CredentialCard";
 import { CredentialFormModal } from "./CredentialFormModal";
 import { DeleteCredentialConfirmModal } from "./DeleteCredentialConfirmModal";
 import type { Credential } from "./types";
 import "./VaultPage.css";
 
+/* The index rail. "All logins" is the only live view today; the rest are
+   scaffolded as disabled placeholders so the designed layout is visible
+   ahead of the roadmap features that will fill them in (favorites, folders,
+   tags, item types, trash — all later phases). */
+interface RailItem {
+  key: string;
+  label: string;
+  icon: IconName;
+  soon?: boolean;
+  tone?: "brass";
+}
+interface RailGroup {
+  label?: string;
+  items: RailItem[];
+}
+
+const RAIL: RailGroup[] = [
+  {
+    items: [
+      { key: "all", label: "All logins", icon: "shield" },
+      { key: "favorites", label: "Favorites", icon: "star", soon: true, tone: "brass" },
+    ],
+  },
+  {
+    label: "Types",
+    items: [
+      { key: "notes", label: "Secure notes", icon: "note", soon: true },
+      { key: "cards", label: "Cards", icon: "card", soon: true },
+      { key: "identities", label: "Identities", icon: "id", soon: true },
+    ],
+  },
+  {
+    label: "Organize",
+    items: [
+      { key: "folders", label: "Folders", icon: "folder", soon: true },
+      { key: "tags", label: "Tags", icon: "tag", soon: true },
+    ],
+  },
+  {
+    items: [{ key: "trash", label: "Trash", icon: "trash", soon: true }],
+  },
+];
+
 export function VaultPage() {
   const { user, logout } = useAuth();
+  const { theme, toggle } = useTheme();
   const [items, setItems] = useState<Credential[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,38 +103,82 @@ export function VaultPage() {
 
   return (
     <div className="vault">
-      <div className="vault__shell">
-        <header className="topbar">
-          <div className="topbar__brand">
-            <span className="topbar__glyph" aria-hidden="true">
-              <Icon name="shield" size={19} />
-            </span>
-            <span className="topbar__word">Vault</span>
-          </div>
+      <header className="bar">
+        <div className="mark">
+          <span className="mark__glyph" aria-hidden="true">
+            <Icon name="shield" size={19} />
+          </span>
+          <span className="mark__word">Vault</span>
+        </div>
 
-          <div className="topbar__spacer" />
+        {/* Search is a Phase 4 feature — shown for layout, disabled for now. */}
+        <div className="search" title="Search is coming in a later phase">
+          <Icon name="search" size={16} />
+          <input
+            type="text"
+            placeholder="Search your vault…"
+            disabled
+            aria-label="Search your vault (coming soon)"
+          />
+          <kbd>/</kbd>
+        </div>
 
-          <button className="topbar__new" onClick={openAddForm}>
-            <Icon name="plus" size={16} /> New login
-          </button>
+        <div className="bar__right">
           <button
-            className="topbar__avatar"
+            className="iconbtn"
+            onClick={toggle}
+            aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+            title={theme === "dark" ? "Light theme" : "Dark theme"}
+          >
+            <Icon name={theme === "dark" ? "sun" : "moon"} size={17} />
+          </button>
+          <Button variant="primary" onClick={openAddForm}>
+            <Icon name="plus" size={16} /> New login
+          </Button>
+          <button
+            className="avatar"
             onClick={() => logout()}
             title={user?.email ? `Log out (${user.email})` : "Log out"}
             aria-label="Log out"
           >
             {initials}
           </button>
-        </header>
+        </div>
+      </header>
 
-        <div className="vault__body">
-          <div className="vault__bhead">
-            <h2 className="vault__htitle">All logins</h2>
-            {showList && items.length > 0 && (
-              <span className="vault__count">
-                {items.length} {items.length === 1 ? "item" : "items"}
-              </span>
-            )}
+      <div className="split">
+        <nav className="rail" aria-label="Vault sections">
+          {RAIL.map((group, gi) => (
+            <div className="rail__group" key={group.label ?? `g${gi}`}>
+              {group.label && <div className="rail__label">{group.label}</div>}
+              {group.items.map((it) => (
+                <button
+                  key={it.key}
+                  type="button"
+                  className={`nav ${it.tone === "brass" ? "nav--brass" : ""}`.trim()}
+                  aria-current={it.key === "all" ? "true" : undefined}
+                  aria-disabled={it.soon || undefined}
+                  disabled={it.soon}
+                >
+                  <Icon name={it.icon} size={17} />
+                  <span className="nav__label">{it.label}</span>
+                  {it.key === "all" && showList ? (
+                    <span className="count">{items.length}</span>
+                  ) : it.soon ? (
+                    <span className="soon">Soon</span>
+                  ) : null}
+                </button>
+              ))}
+            </div>
+          ))}
+        </nav>
+
+        <div className="content">
+          <div className="listhead">
+            <h1>
+              All logins
+              {showList && items.length > 0 && <span>{items.length}</span>}
+            </h1>
           </div>
 
           {isLoading && <div className="vault__state">Loading your vault…</div>}

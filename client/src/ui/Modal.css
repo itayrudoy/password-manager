@@ -2,29 +2,97 @@
   position: fixed;
   inset: 0;
   background: var(--scrim);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--s5);
   z-index: 100;
+  animation: modal-fade 0.16s ease;
+}
+
+@keyframes modal-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
 }
 
 .modal {
   background: var(--surface);
   border: var(--bw) solid var(--border);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-xl);
   box-shadow: var(--shadow-lg);
   padding: var(--s5);
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
   max-height: calc(100vh - var(--s7));
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: var(--s4);
   outline: none;
+  animation: modal-rise 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* Head used by the create/edit form: a mono eyebrow with an accent dot,
+   and a close button pinned to the right. */
+.modal__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.modal__eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--soft);
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.modal__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+}
+
+.modal__close {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  border: var(--bw) solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.modal__close:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.modal__close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Title used by the delete-confirm modal (a plain heading). */
 .modal__title {
   margin: 0;
   font-size: var(--text-lg);
