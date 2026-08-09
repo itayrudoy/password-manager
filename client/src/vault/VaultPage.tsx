@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import { useTheme } from "../lib/useTheme";
@@ -63,6 +63,27 @@ export function VaultPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Credential | null>(null);
   const [deletingItem, setDeletingItem] = useState<Credential | null>(null);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  // Close the account menu on outside click or Escape.
+  useEffect(() => {
+    if (!isAccountMenuOpen) return;
+    function onPointerDown(e: PointerEvent) {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setIsAccountMenuOpen(false);
+      }
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setIsAccountMenuOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isAccountMenuOpen]);
 
   useEffect(() => {
     api
@@ -135,14 +156,28 @@ export function VaultPage() {
           <Button variant="primary" onClick={openAddForm}>
             <Icon name="plus" size={16} /> New login
           </Button>
-          <button
-            className="avatar"
-            onClick={() => logout()}
-            title={user?.email ? `Log out (${user.email})` : "Log out"}
-            aria-label="Log out"
-          >
-            {initials}
-          </button>
+          <div className="account" ref={accountRef}>
+            <button
+              className="avatar"
+              onClick={() => setIsAccountMenuOpen((open) => !open)}
+              aria-haspopup="true"
+              aria-expanded={isAccountMenuOpen}
+              aria-label="Account menu"
+            >
+              {initials}
+            </button>
+            {isAccountMenuOpen && (
+              <div className="account__menu">
+                <div className="account__id">
+                  <span className="account__id-label">Signed in as</span>
+                  <span className="account__id-email">{user?.email ?? "—"}</span>
+                </div>
+                <button type="button" className="account__item" onClick={() => logout()}>
+                  <Icon name="logout" size={16} /> Log out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
