@@ -151,7 +151,7 @@ export function VaultPage() {
             aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
             title={theme === "dark" ? "Light theme" : "Dark theme"}
           >
-            <Icon name={theme === "dark" ? "sun" : "moon"} size={17} />
+            <Icon name={theme === "dark" ? "moon" : "sun"} size={17} />
           </button>
           <Button variant="primary" onClick={openAddForm}>
             <Icon name="plus" size={16} /> New login
