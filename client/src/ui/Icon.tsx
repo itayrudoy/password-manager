@@ -7,6 +7,7 @@ export type IconName =
   | "eyeOff"
   | "copy"
   | "check"
+  | "refresh"
   | "pen"
   | "trash"
   | "search"
@@ -50,6 +51,12 @@ const paths: Record<IconName, ReactElement> = {
     </>
   ),
   check: <path d="M20 6L9 17l-5-5" />,
+  refresh: (
+    <>
+      <path d="M21 12a9 9 0 1 1-2.6-6.4" />
+      <path d="M21 4v4h-4" />
+    </>
+  ),
   pen: (
     <>
       <path d="M12 20h9" />
