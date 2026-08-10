@@ -115,7 +115,7 @@
    the literal shadows/tint are redefined — the color-mix() derived tokens
    above resolve against whichever base values are in scope, so they adapt. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0e1512;
     --inner: #141c18;
     --surface: #141c18;
