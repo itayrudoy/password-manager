@@ -6,6 +6,8 @@ import { Button } from "../ui/Button";
 import { IconButton } from "../ui/IconButton";
 import { Icon } from "../ui/Icon";
 import { useCopyFeedback } from "../lib/useCopyFeedback";
+import { PasswordStrengthMeter } from "./PasswordStrengthMeter";
+import { PasswordGenerator } from "./PasswordGenerator";
 import type { Credential, CredentialInput } from "./types";
 
 interface CredentialFormModalProps {
@@ -88,6 +90,7 @@ export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormMo
           mono
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          placeholder="Type or generate"
           required
           trailing={
             <>
@@ -107,6 +110,13 @@ export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormMo
               </IconButton>
             </>
           }
+        />
+        <PasswordStrengthMeter password={password} />
+        <PasswordGenerator
+          onGenerate={(pw) => {
+            setPassword(pw);
+            setRevealed(true);
+          }}
         />
         <Input
           label="Website"
