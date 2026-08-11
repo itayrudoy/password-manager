@@ -17,6 +17,7 @@ Close the plaintext hole with client-side encryption, while keeping login effort
 - Built around one Vault Key + pluggable **unlock methods** (key wraps), so the extra-secure tier (Phase 7) later slots in by adding user-held wraps — no re-encryption, no schema/API rewrite.
 - Manual lock/unlock in-session (auto-lock-on-idle deferred).
 - XSS / CSP hardening.
+- Social sign-in: login/signup with **Google** and **Apple** — fits the convenient tier cleanly because the Vault Key is server-escrowed (after the provider authenticates the session, the server unwraps and hands back the key, exactly as with password login).
 
 ## Phase 3 — Migration & CI/CD
 - CI/CD: pipeline running tests + lint on every change.
