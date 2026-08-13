@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { prisma } from "../db/prisma.js";
 import { HttpError } from "../middleware/errorHandler.js";
 import { hashPassword, verifyPassword } from "../crypto/passwordHash.js";
+import { createVaultKey } from "../keychain/keychain.service.js";
 import { COOKIE_NAME, clearCookieOptions, cookieOptions, signToken } from "./token.js";
 
 function requireCredentials(req: Request): { email: string; password: string } {
@@ -21,8 +22,12 @@ export async function signup(req: Request, res: Response) {
   }
 
   const hashedPassword = await hashPassword(password);
-  const user = await prisma.user.create({
-    data: { email, hashedPassword },
+  // Create the account and its Vault Key atomically — an account must never
+  // exist without a key.
+  const user = await prisma.$transaction(async (tx) => {
+    const created = await tx.user.create({ data: { email, hashedPassword } });
+    await createVaultKey(created.id, tx);
+    return created;
   });
 
   res.cookie(COOKIE_NAME, signToken(user.id), cookieOptions);

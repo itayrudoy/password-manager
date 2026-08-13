@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import { authRouter } from "./auth/auth.routes.js";
 import { credentialsRouter } from "./credentials/credentials.routes.js";
+import { keychainRouter } from "./keychain/keychain.routes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 export function createApp() {
@@ -18,6 +19,7 @@ export function createApp() {
 
   app.use("/api/auth", authRouter);
   app.use("/api/credentials", credentialsRouter);
+  app.use("/api/keychain", keychainRouter);
 
   app.use(errorHandler);
 

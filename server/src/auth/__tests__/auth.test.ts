@@ -1,7 +1,8 @@
 import request from "supertest";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../../app.js";
 import { prisma } from "../../db/prisma.js";
+import * as keychain from "../../keychain/keychain.service.js";
 
 const app = createApp();
 const SIGNUP_PATH = "/api/auth/signup";
@@ -32,6 +33,18 @@ describe("auth", () => {
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ id: expect.any(String), email: ALICE.email });
     expect(res.headers["set-cookie"]?.[0]).toMatch(/^token=/);
+  });
+
+  it("rolls back the new user if Vault Key creation fails (atomic signup)", async () => {
+    // Force the second write in the transaction to fail; the user row must not
+    // survive — an account must never exist without a Vault Key.
+    const spy = vi.spyOn(keychain, "createVaultKey").mockRejectedValueOnce(new Error("boom"));
+
+    const res = await signup();
+
+    expect(res.status).toBe(500);
+    expect(await prisma.user.count()).toBe(0);
+    spy.mockRestore();
   });
 
   it("rejects signing up with the same email twice", async () => {
