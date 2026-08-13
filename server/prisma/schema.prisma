@@ -14,8 +14,25 @@ model User {
   createdAt      DateTime @default(now()) @map("created_at")
 
   credentials Credential[]
+  vaultKey    VaultKey?
 
   @@map("users")
+}
+
+// One row per user, holding their Vault Key locked with the server-wide Server
+// Key. `lockedKey` is the opaque output of vaultKeyLock.lockVaultKey() — the
+// Vault Key is never stored in the clear. Kept in its own table (not columns on
+// User) so Phase 7 can add more unlock methods as inserts, no rewrite.
+model VaultKey {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  lockedKey String   @map("locked_key")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("vault_keys")
 }
 
 model Credential {
