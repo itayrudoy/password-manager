@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
+import { useVaultKey } from "../keychain/VaultKeyContext";
 import { useTheme } from "../lib/useTheme";
 import { Button } from "../ui/Button";
 import { Icon, type IconName } from "../ui/Icon";
 import { CredentialCard } from "./CredentialCard";
 import { CredentialFormModal } from "./CredentialFormModal";
+import { deleteCredential, listCredentials } from "./credentials";
 import { DeleteCredentialConfirmModal } from "./DeleteCredentialConfirmModal";
 import type { Credential } from "./types";
 import "./VaultPage.css";
@@ -55,10 +56,12 @@ const RAIL: RailGroup[] = [
 
 export function VaultPage() {
   const { user, logout } = useAuth();
+  const { vaultKey, status: keyStatus } = useVaultKey();
   const { theme, toggle } = useTheme();
-  const [items, setItems] = useState<Credential[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // null until the first fetch resolves — distinguishes "still loading" from
+  // "loaded, but empty".
+  const [items, setItems] = useState<Credential[] | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Credential | null>(null);
@@ -85,13 +88,25 @@ export function VaultPage() {
     };
   }, [isAccountMenuOpen]);
 
+  // The vault can only load once the session Vault Key is in memory, since every
+  // item is decrypted client-side. The effect fires once the key is ready; the
+  // key-error and loading states are derived below. Keyed on user.id (not the
+  // user object) so an unchanged session doesn't trigger repeat fetches.
+  const userId = user?.id;
   useEffect(() => {
-    api
-      .get<Credential[]>("/credentials")
-      .then(setItems)
-      .catch(() => setError("Failed to load your vault"))
-      .finally(() => setIsLoading(false));
-  }, []);
+    if (!vaultKey || !userId) return;
+    let cancelled = false;
+    listCredentials(vaultKey, userId)
+      .then((rows) => {
+        if (!cancelled) setItems(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setFetchError("Failed to load your vault");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [vaultKey, userId]);
 
   function openAddForm() {
     setEditingItem(null);
@@ -105,8 +120,9 @@ export function VaultPage() {
 
   function handleSaved(saved: Credential) {
     setItems((prev) => {
-      const exists = prev.some((i) => i.id === saved.id);
-      return exists ? prev.map((i) => (i.id === saved.id ? saved : i)) : [saved, ...prev];
+      const base = prev ?? [];
+      const exists = base.some((i) => i.id === saved.id);
+      return exists ? base.map((i) => (i.id === saved.id ? saved : i)) : [saved, ...base];
     });
     setIsFormOpen(false);
     setEditingItem(null);
@@ -114,12 +130,17 @@ export function VaultPage() {
 
   async function handleConfirmDelete() {
     if (!deletingItem) return;
-    await api.delete(`/credentials/${deletingItem.id}`);
-    setItems((prev) => prev.filter((i) => i.id !== deletingItem.id));
+    await deleteCredential(deletingItem.id);
+    setItems((prev) => (prev ?? []).filter((i) => i.id !== deletingItem.id));
     setDeletingItem(null);
   }
 
   const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
+  // Key failure is terminal; otherwise a failed fetch; otherwise loading until
+  // the first result lands.
+  const error = keyStatus === "error" ? "Couldn’t unlock your vault" : fetchError;
+  const isLoading = !error && items === null;
+  const list = items ?? [];
   const showList = !isLoading && !error;
 
   return (
@@ -198,7 +219,7 @@ export function VaultPage() {
                   <Icon name={it.icon} size={17} />
                   <span className="nav__label">{it.label}</span>
                   {it.key === "all" && showList ? (
-                    <span className="count">{items.length}</span>
+                    <span className="count">{list.length}</span>
                   ) : it.soon ? (
                     <span className="soon">Soon</span>
                   ) : null}
@@ -212,14 +233,14 @@ export function VaultPage() {
           <div className="listhead">
             <h1>
               All logins
-              {showList && items.length > 0 && <span>{items.length}</span>}
+              {showList && list.length > 0 && <span>{list.length}</span>}
             </h1>
           </div>
 
           {isLoading && <div className="vault__state">Loading your vault…</div>}
           {error && <div className="vault__state vault__state--error">{error}</div>}
 
-          {showList && items.length === 0 && (
+          {showList && list.length === 0 && (
             <div className="vault__empty">
               <span className="vault__empty-glyph" aria-hidden="true">
                 <Icon name="shield" size={26} />
@@ -234,9 +255,9 @@ export function VaultPage() {
             </div>
           )}
 
-          {showList && items.length > 0 && (
+          {showList && list.length > 0 && (
             <div className="vault__list">
-              {items.map((item) => (
+              {list.map((item) => (
                 <CredentialCard
                   key={item.id}
                   item={item}

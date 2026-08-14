@@ -1,13 +1,16 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { VaultPage } from "./VaultPage";
-import { api } from "../api/client";
+import { listCredentials } from "./credentials";
+import { useVaultKey } from "../keychain/VaultKeyContext";
 import type { Credential } from "./types";
 
-vi.mock("../api/client", () => ({
-  api: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
-  ApiError: class ApiError extends Error {},
+vi.mock("./credentials", () => ({
+  listCredentials: vi.fn(),
+  deleteCredential: vi.fn(),
 }));
+
+vi.mock("../keychain/VaultKeyContext", () => ({ useVaultKey: vi.fn() }));
 
 // Auth is orthogonal to what we're testing here; provide a stable signed-in user.
 vi.mock("../auth/AuthContext", () => ({
@@ -20,7 +23,11 @@ vi.mock("../auth/AuthContext", () => ({
   }),
 }));
 
-const mockGet = vi.mocked(api.get);
+const mockList = vi.mocked(listCredentials);
+const mockUseVaultKey = vi.mocked(useVaultKey);
+
+// A stand-in CryptoKey — VaultPage only forwards it to the (mocked) data layer.
+const READY_KEY = { vaultKey: {} as CryptoKey, status: "ready" as const };
 
 function makeCredential(overrides: Partial<Credential> = {}): Credential {
   return {
@@ -39,29 +46,44 @@ function makeCredential(overrides: Partial<Credential> = {}): Credential {
 describe("VaultPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseVaultKey.mockReturnValue(READY_KEY);
   });
 
   it("shows the loading state while the vault is being fetched", () => {
-    mockGet.mockReturnValue(new Promise(() => {})); // never resolves
+    mockList.mockReturnValue(new Promise(() => {})); // never resolves
     render(<VaultPage />);
     expect(screen.getByText("Loading your vault…")).toBeInTheDocument();
   });
 
   it("shows an error state when the fetch fails", async () => {
-    mockGet.mockRejectedValue(new Error("network"));
+    mockList.mockRejectedValue(new Error("network"));
     render(<VaultPage />);
     expect(await screen.findByText("Failed to load your vault")).toBeInTheDocument();
     expect(screen.queryByText("Loading your vault…")).not.toBeInTheDocument();
   });
 
+  it("shows an unlock error when the Vault Key can't be obtained", async () => {
+    mockUseVaultKey.mockReturnValue({ vaultKey: null, status: "error" });
+    render(<VaultPage />);
+    expect(await screen.findByText("Couldn’t unlock your vault")).toBeInTheDocument();
+    expect(mockList).not.toHaveBeenCalled();
+  });
+
+  it("stays in the loading state until the Vault Key is ready", () => {
+    mockUseVaultKey.mockReturnValue({ vaultKey: null, status: "loading" });
+    render(<VaultPage />);
+    expect(screen.getByText("Loading your vault…")).toBeInTheDocument();
+    expect(mockList).not.toHaveBeenCalled();
+  });
+
   it("shows the empty state when there are no credentials", async () => {
-    mockGet.mockResolvedValue([]);
+    mockList.mockResolvedValue([]);
     render(<VaultPage />);
     expect(await screen.findByText("No logins yet")).toBeInTheDocument();
   });
 
   it("renders a card per credential when the vault is populated", async () => {
-    mockGet.mockResolvedValue([
+    mockList.mockResolvedValue([
       makeCredential({ id: "1", title: "GitHub" }),
       makeCredential({ id: "2", title: "GitLab" }),
     ]);

@@ -35,18 +35,22 @@ model VaultKey {
   @@map("vault_keys")
 }
 
+// A vault item, encrypted in the browser under the user's Vault Key (PM-11).
+// The server stores only opaque ciphertext + bookkeeping — it can no longer read
+// any secret content. Each item is two independent blobs:
+//   - overviewCiphertext: title, url, username (the fields the list renders)
+//   - secretCiphertext:   password, notes (revealed on demand)
+// Each blob is a self-contained base64 token (IV ‖ ciphertext‖tag). `version` is
+// the crypto/envelope version, bound into the client's AAD so it's tamper-evident;
+// the payload's own field-schema version lives inside the encrypted JSON.
 model Credential {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  title     String
-  url       String?
-  username  String?
-  // Output of vaultCrypto.encrypt(). Today that's a no-op, so this is plaintext —
-  // the column stays a plain string when real encryption replaces the seam.
-  password  String
-  notes     String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                 String   @id @default(uuid())
+  userId             String   @map("user_id")
+  version            Int      @default(1)
+  overviewCiphertext String   @map("overview_ciphertext")
+  secretCiphertext   String   @map("secret_ciphertext")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

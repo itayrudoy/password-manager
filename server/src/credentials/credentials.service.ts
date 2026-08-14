@@ -1,70 +1,51 @@
-import type { Credential } from "@prisma/client";
-import { decrypt, encrypt } from "../crypto/vaultCrypto.js";
 import { prisma } from "../db/prisma.js";
 
+// Vault items are encrypted in the browser (PM-11). The server stores and returns
+// the ciphertext blobs verbatim — there is no encrypt/decrypt seam here anymore,
+// and no code path on the server can read a secret. Persist exactly what the
+// client sends; hand back exactly what's stored.
+
 export interface CredentialInput {
-  title: string;
-  url?: string | null;
-  username?: string | null;
-  password: string;
-  notes?: string | null;
-}
-
-export interface CredentialUpdateInput {
-  title?: string;
-  url?: string | null;
-  username?: string | null;
-  password?: string;
-  notes?: string | null;
-}
-
-async function toView(item: Credential) {
-  return { ...item, password: await decrypt(item.password) };
+  version: number;
+  overviewCiphertext: string;
+  secretCiphertext: string;
 }
 
 export async function listCredentials(userId: string) {
-  const items = await prisma.credential.findMany({
+  return prisma.credential.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
   });
-  return Promise.all(items.map(toView));
 }
 
 export async function createCredential(userId: string, input: CredentialInput) {
-  const item = await prisma.credential.create({
+  return prisma.credential.create({
     data: {
       userId,
-      title: input.title,
-      url: input.url ?? null,
-      username: input.username ?? null,
-      password: await encrypt(input.password),
-      notes: input.notes ?? null,
+      version: input.version,
+      overviewCiphertext: input.overviewCiphertext,
+      secretCiphertext: input.secretCiphertext,
     },
   });
-  return toView(item);
 }
 
 export async function getCredential(userId: string, id: string) {
-  const item = await prisma.credential.findFirst({ where: { id, userId } });
-  return item ? toView(item) : null;
+  return prisma.credential.findFirst({ where: { id, userId } });
 }
 
-export async function updateCredential(userId: string, id: string, input: CredentialUpdateInput) {
+export async function updateCredential(userId: string, id: string, input: CredentialInput) {
   const existing = await prisma.credential.findFirst({ where: { id, userId } });
   if (!existing) {
     return null;
   }
-  const item = await prisma.credential.update({
+  return prisma.credential.update({
     where: { id },
     data: {
-      title: input.title,
-      url: input.url,
-      username: input.username,
-      notes: input.notes,
-      password: input.password !== undefined ? await encrypt(input.password) : undefined,
+      version: input.version,
+      overviewCiphertext: input.overviewCiphertext,
+      secretCiphertext: input.secretCiphertext,
     },
   });
-  return toView(item);
 }
 
 export async function deleteCredential(userId: string, id: string): Promise<boolean> {

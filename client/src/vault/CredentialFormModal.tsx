@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
-import { api, ApiError } from "../api/client";
+import { ApiError } from "../api/client";
+import { useAuth } from "../auth/AuthContext";
+import { useVaultKey } from "../keychain/VaultKeyContext";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
@@ -8,6 +10,7 @@ import { Icon } from "../ui/Icon";
 import { useCopyFeedback } from "../lib/useCopyFeedback";
 import { PasswordStrengthMeter } from "./PasswordStrengthMeter";
 import { PasswordGenerator } from "./PasswordGenerator";
+import { saveCredential } from "./credentials";
 import type { Credential, CredentialInput } from "./types";
 
 interface CredentialFormModalProps {
@@ -17,6 +20,8 @@ interface CredentialFormModalProps {
 }
 
 export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormModalProps) {
+  const { user } = useAuth();
+  const { vaultKey } = useVaultKey();
   const [title, setTitle] = useState(item?.title ?? "");
   const [url, setUrl] = useState(item?.url ?? "");
   const [username, setUsername] = useState(item?.username ?? "");
@@ -30,6 +35,10 @@ export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormMo
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!vaultKey || !user) {
+      setError("Your vault is locked — reload and try again");
+      return;
+    }
     setIsSaving(true);
     const input: CredentialInput = {
       title,
@@ -39,9 +48,8 @@ export function CredentialFormModal({ item, onClose, onSaved }: CredentialFormMo
       notes: notes || null,
     };
     try {
-      const saved = item
-        ? await api.put<Credential>(`/credentials/${item.id}`, input)
-        : await api.post<Credential>("/credentials", input);
+      // Encrypts under the Vault Key before anything leaves the browser.
+      const saved = await saveCredential(vaultKey, user.id, input, item?.id);
       onSaved(saved);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to save item");
