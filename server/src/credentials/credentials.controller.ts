@@ -2,44 +2,25 @@ import type { Request, Response } from "express";
 import { HttpError } from "../middleware/errorHandler.js";
 import * as credentials from "./credentials.service.js";
 
-function optionalString(value: unknown, field: string): string | null | undefined {
-  if (value === undefined) return undefined;
-  if (value === null) return null;
-  if (typeof value !== "string") throw new HttpError(400, `${field} must be a string`);
+function requiredString(value: unknown, field: string): string {
+  if (typeof value !== "string" || !value) {
+    throw new HttpError(400, `${field} is required`);
+  }
   return value;
 }
 
-function parseCreateInput(body: unknown): credentials.CredentialInput {
+// Create and update both carry a full encrypted item: an edit re-encrypts the
+// whole thing client-side, so there is no partial update. The server validates
+// only the blob's shape — it can't (and must not) inspect the ciphertext.
+function parseCredentialInput(body: unknown): credentials.CredentialInput {
   const b = (body ?? {}) as Record<string, unknown>;
-  if (typeof b.title !== "string" || !b.title) {
-    throw new HttpError(400, "title is required");
-  }
-  if (typeof b.password !== "string" || !b.password) {
-    throw new HttpError(400, "password is required");
+  if (typeof b.version !== "number" || !Number.isInteger(b.version)) {
+    throw new HttpError(400, "version is required");
   }
   return {
-    title: b.title,
-    password: b.password,
-    url: optionalString(b.url, "url"),
-    username: optionalString(b.username, "username"),
-    notes: optionalString(b.notes, "notes"),
-  };
-}
-
-function parseUpdateInput(body: unknown): credentials.CredentialUpdateInput {
-  const b = (body ?? {}) as Record<string, unknown>;
-  if (b.title !== undefined && (typeof b.title !== "string" || !b.title)) {
-    throw new HttpError(400, "title must be a non-empty string");
-  }
-  if (b.password !== undefined && (typeof b.password !== "string" || !b.password)) {
-    throw new HttpError(400, "password must be a non-empty string");
-  }
-  return {
-    title: b.title as string | undefined,
-    password: b.password as string | undefined,
-    url: optionalString(b.url, "url"),
-    username: optionalString(b.username, "username"),
-    notes: optionalString(b.notes, "notes"),
+    version: b.version,
+    overviewCiphertext: requiredString(b.overviewCiphertext, "overviewCiphertext"),
+    secretCiphertext: requiredString(b.secretCiphertext, "secretCiphertext"),
   };
 }
 
@@ -49,7 +30,7 @@ export async function list(req: Request, res: Response) {
 }
 
 export async function create(req: Request, res: Response) {
-  const input = parseCreateInput(req.body);
+  const input = parseCredentialInput(req.body);
   const item = await credentials.createCredential(req.userId!, input);
   res.status(201).json(item);
 }
@@ -63,7 +44,7 @@ export async function getOne(req: Request, res: Response) {
 }
 
 export async function update(req: Request, res: Response) {
-  const input = parseUpdateInput(req.body);
+  const input = parseCredentialInput(req.body);
   const item = await credentials.updateCredential(req.userId!, req.params.id, input);
   if (!item) {
     throw new HttpError(404, "Credential not found");
